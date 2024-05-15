@@ -1,15 +1,14 @@
 /*
 Copyright © 2024 NAME HERE <EMAIL ADDRESS>
-
 */
 package cmd
 
 import (
 	"os"
+
+	"github.com/DnFreddie/backy/utils"
 	"github.com/spf13/cobra"
 )
-
-
 
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
@@ -37,6 +36,7 @@ func Execute() {
 
 func init() {
 	// Here you will define your flags and configuration settings.
+	cobra.OnInitialize(utils.Checkdir)
 	// Cobra supports persistent flags, which, if defined here,
 	// will be global for your application.
 

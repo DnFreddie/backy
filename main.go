@@ -26,7 +26,10 @@ func main() {
 		fmt.Printf("err")
 	}
 	fmt.Println(test)
+
+	fmt.Println("whats' wrong")
 	utils.Jsonyfie(test)
+utils.ReadJson("./test_file.json")
 
 
 }

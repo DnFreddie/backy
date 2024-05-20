@@ -2,18 +2,17 @@ package utils
 
 import (
 	"fmt"
+	"io"
 	"io/fs"
 	"os"
 	"os/user"
 	"path"
 )
 
-
 const (
 	LOG_DIR   = ".user_log"
 	JSON_PATH = "test_file.json"
 )
-
 
 func Checkdir() {
 	user, err := user.Current()
@@ -37,24 +36,23 @@ func Checkdir() {
 }
 
 func ScanDir(dir_path string) ([]fs.DirEntry, error) {
-	conf_dir, err := getUser(dir_path)
+	_, err := os.Stat(dir_path)
 
-	if err != nil {
+	if os.IsNotExist(err) || err != nil {
 		fmt.Println("Scan failed: ", err)
-		return nil, err
 	}
 
-	files, err := os.ReadDir(conf_dir)
+	files, err := os.ReadDir(dir_path)
 	if err != nil {
-
 		fmt.Printf("Doesnt have permissons to read {%v}", err)
+		return nil, err
 	}
 
 	return files, nil
 }
 
-// /Needd the path
-func getUser(p string) (string, error) {
+// /Returns the joined path of the target and the user dir
+func GetUser(p string) (string, error) {
 	user, err := user.Current()
 
 	if err != nil {
@@ -69,3 +67,60 @@ func getUser(p string) (string, error) {
 
 }
 
+func CopyFile(src, dst string) error {
+	var err error
+	var srcfd *os.File
+	var dstfd *os.File
+	var srcinfo os.FileInfo
+
+	if srcfd, err = os.Open(src); err != nil {
+		return err
+	}
+	defer srcfd.Close()
+
+	if dstfd, err = os.Create(dst); err != nil {
+		return err
+	}
+	defer dstfd.Close()
+
+	if _, err = io.Copy(dstfd, srcfd); err != nil {
+		return err
+	}
+	if srcinfo, err = os.Stat(src); err != nil {
+		return err
+	}
+	return os.Chmod(dst, srcinfo.Mode())
+}
+
+func CopyDir(src string, dst string) error {
+	var err error
+	var fds []fs.DirEntry
+	var srcinfo fs.FileInfo
+
+	if srcinfo, err = os.Stat(src); err != nil {
+		return err
+	}
+
+	if err = os.MkdirAll(dst, srcinfo.Mode()); err != nil {
+		return err
+	}
+
+	if fds, err = os.ReadDir(src); err != nil {
+		return err
+	}
+	for _, fd := range fds {
+		srcfp := path.Join(src, fd.Name())
+		dstfp := path.Join(dst, fd.Name())
+
+		if fd.IsDir() {
+			if err = CopyDir(srcfp, dstfp); err != nil {
+				fmt.Println(err)
+			}
+		} else {
+			if err = CopyFile(srcfp, dstfp); err != nil {
+				fmt.Println(err)
+			}
+		}
+	}
+	return nil
+}

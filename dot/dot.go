@@ -3,9 +3,14 @@ package dot
 import (
 	"fmt"
 	"io/fs"
+	"log"
 	"os"
+	"path"
 	"path/filepath"
+
 	"strings"
+
+	"github.com/DnFreddie/backy/utils"
 )
 
 const (
@@ -23,15 +28,58 @@ func DotCommand() error {
 	}
 
 	dirStructs := Isexe(dirPahts)
-	fmt.Println("",dirStructs)
+	err= CreateSymlink(dirStructs)
+	log.Fatal(err)
 
 return nil
 
 
 }
 
+
+
+//TODO! Read about the context 
+func CreateSymlink(dotfiles[] Dotfile) error{
+
+targetPath ,err := utils.GetUser("Desktop")
+	
+	if err != nil {
+
+		return err 
+	}
+	for _,f := range  dotfiles{
+
+		//also if not existient
+		if f.IsEx {
+
+	symlinkPath:= f.Location.Name()
+		err:= os.Symlink(symlinkPath,path.Join()) 
+			
+			if err != nil {
+				fmt.Println("failed to create ",symlinkPath,targetPath)
+				return err
+			}
+
+
+
+		}
+		fmt.Println("It's not exacatuble",f.Location.Name())
+	}
+
+
+
+
+return nil
+
+}
+
+
+
+
+
+
 func GetPaths() ([]fs.DirEntry, error) {
-	dirs, err := os.ReadDir(".")
+	dirs, err := os.ReadDir("dotfiles_test")
 	//fmt.Println(dirs)
 	if err != nil {
 		fmt.Println("Can't list this dir probably permissions issue ", err)

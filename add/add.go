@@ -3,9 +3,9 @@ package add
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/DnFreddie/backy/utils"
 	"os"
 	"path/filepath"
-	"github.com/DnFreddie/backy/utils"
 )
 
 func Add_command(args *[]string) error {
@@ -21,15 +21,15 @@ func Add_command(args *[]string) error {
 
 	return nil
 }
+
 func Add_dir(paths *[]string) ([]string, error) {
 	var newPaths []string
 
 	for _, p := range *paths {
 		new_path, err := filepath.Abs(p)
-		//fix this this shold'd stop the hole app  TODOOO
 		if err != nil {
-			fmt.Println("Error getting absolute path for:", p)
-			return nil, err
+			fmt.Println("Error getting absolute path for:", p, "-", err)
+			continue
 		}
 
 		_, err = os.Stat(new_path)
@@ -38,7 +38,7 @@ func Add_dir(paths *[]string) ([]string, error) {
 			continue
 		} else if err != nil {
 			fmt.Println("Error checking file:", err)
-			return nil, err
+			continue
 		}
 
 		newPaths = append(newPaths, new_path)
@@ -46,6 +46,7 @@ func Add_dir(paths *[]string) ([]string, error) {
 
 	return newPaths, nil
 }
+
 func Jsonyfie(FDirs []string) error {
 	b_Record := Brecord{
 		Category: "test",

@@ -4,8 +4,7 @@ Copyright © 2024 NAME HERE <EMAIL ADDRESS>
 package cmd
 
 import (
-
-	"github.com/DnFreddie/backy/utils"
+	"github.com/DnFreddie/backy/add"
 	"github.com/spf13/cobra"
 )
 
@@ -18,7 +17,7 @@ var addCmd = &cobra.Command{
 	while also applaying rules to a given category`,
 	Args: cobra.MinimumNArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
-		utils.Add_command(&args)
+		add.Add_command(&args)
 	},
 }
 

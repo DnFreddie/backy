@@ -24,8 +24,8 @@ var dotCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 
 		err:= dot.DotCommand()
-		var tmp  []dot.Dotfile
-		dot.CreateSymlinksTemp(tmp)
+		//var tmp  []dot.Dotfile
+		//dot.CopyTemp(tmp)
 
 
 

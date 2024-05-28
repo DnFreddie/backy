@@ -71,7 +71,8 @@ func Jsonyfie(FDirs []string) error {
 		}
 	}
 
-	jsonData, err := readJson(utils.JSON_PATH)
+	
+	jsonData, err := utils.ReadJson(utils.JSON_PATH,&Brecord{})
 	if err != nil {
 		return err
 	}
@@ -93,19 +94,4 @@ func Jsonyfie(FDirs []string) error {
 	return nil
 }
 
-func readJson(jsonPath string) ([]Brecord, error) {
-	var bR []Brecord
-	f, err := os.ReadFile(jsonPath)
-	if err != nil {
-		fmt.Println("Can't read the file")
-		return nil, err
-	}
 
-	err = json.Unmarshal(f, &bR)
-	if err != nil {
-		fmt.Println("Can't unmarshal the records ", err)
-		return nil, err
-	}
-
-	return bR, nil
-}

@@ -124,3 +124,23 @@ func CopyDir(src string, dst string) error {
 	}
 	return nil
 }
+
+func ReadJson[T any](jsonPath string, unmarshalS *T) ([]T, error) {
+    var records []T
+
+    f, err := os.ReadFile(jsonPath)
+    if err != nil {
+        fmt.Println("Can't read the file:", err)
+        return nil, err
+    }
+
+    err = json.Unmarshal(f, unmarshalS)
+    if err != nil {
+        fmt.Println("Can't unmarshal the records:", err)
+        return nil, err
+    }
+
+    records = append(records, *unmarshalS)
+
+    return records, nil
+}

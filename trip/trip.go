@@ -1,92 +1,116 @@
 package trip
 
 import (
-	"encoding/json"
-	"errors"
+	"crypto/sha256"
 	"fmt"
 	"log/slog"
 	"os"
-
-	"github.com/DnFreddie/backy/utils"
-	gomail "gopkg.in/gomail.v2"
+	"path"
+	"sync"
 )
 
-type Email_Creds struct {
-	Email  string
-	Passwd string
+type FileChanged struct {
+	AbPath     string
+	Hash       []byte
+	WasChanged bool
 }
 
-const (
-	MAIL    = "Test"
-	E_PASSW = "test"
-)
+func HashHash(b []byte, fPath string) FileChanged {
+	h := sha256.New()
+	hashed := h.Sum(b)
 
-func readTheConfig() (Email_Creds, error) {
-
-	email_conf, err := utils.GetUser(utils.LOG_DIR + "/email.json")
-
-	if err != nil {
-		return Email_Creds{}, err
+	testChanged := FileChanged{
+		AbPath:     fPath,
+		Hash:       hashed,
+		WasChanged: false,
 	}
 
-	_, err = os.Stat(email_conf)
-
-	if os.IsNotExist(err) || err != nil {
-		fmt.Println("creating the email_conf ", err)
-
-		newCreds := Email_Creds{
-			Email:  MAIL,
-			Passwd: E_PASSW,
-		}
-		jr, err := json.Marshal(&newCreds)
-
-		if err != nil {
-			slog.Error("cant unmrashall the creds", err)
-		}
-
-		err = os.WriteFile(email_conf, jr, 0666)
-
-		if err != nil {
-			slog.Error("Can't create a Email Creds file", err)
-			return Email_Creds{}, err
-
-		}
-	}
-
-	creds, err := utils.ReadJson(email_conf, &Email_Creds{})
-	if err != nil {
-
-		slog.Error("Can't read the creds", err)
-
-		return Email_Creds{}, err
-
-	}
-
-	if len(creds) != 1 {
-		err := errors.New("Smth is wrong in the config file ")
-		return Email_Creds{}, err
-	}
-
-	return creds[0], nil
+	return testChanged
 }
 
-func SendMessage(body string) error {
-	creds, err := readTheConfig()
+func readFilesAsync(filePath string) (FileChanged,error){
+
+	if _, err := os.Stat(filePath); os.IsNotExist(err) {
+		fmt.Println("File does not exist:", filePath)
+		return FileChanged{},nil
+	}
+
+	content, err := os.ReadFile(filePath)
+
 	if err != nil {
-		slog.Error("Can't read the config", err)
-		return err
+		slog.Error("Can't read the file permissions issues", err)
+		return FileChanged{}, err
 	}
-	msg := gomail.NewMessage()
-	msg.SetHeader("From", MAIL)
-	msg.SetHeader("To", MAIL)
-	msg.SetBody("text", body)
 
-	n := gomail.NewDialer("smtp.gmail.com", 587, creds.Email, creds.Passwd)
+	fChanged := HashHash(content, filePath)
 
-	if err := n.DialAndSend(msg); err != nil {
-		slog.Error("Can't send the message", err)
-		return err
-	}
-	slog.Info("The message has been succesfully send")
-	return nil
+
+	return fChanged ,nil
+}
+
+
+type Directory struct {
+    Path         string
+    Subdirectories map[string]*Directory
+    Files        []FileChanged
+    mu           sync.Mutex 
+}
+
+func TripCommand(fPath string) (*Directory, error) {
+    dir := &Directory{
+        Path:          fPath,
+        Subdirectories: make(map[string]*Directory),
+    }
+
+    fds, err := os.ReadDir(fPath)
+    if err != nil {
+        return nil, err
+    }
+
+    var wg sync.WaitGroup 
+    for _, fd := range fds {
+        jPath := path.Join(fPath, fd.Name())
+
+        if fd.IsDir() {
+            wg.Add(1)
+            fdCopy := fd
+            go func(jPath string, fdCopy os.DirEntry) {
+                defer wg.Done() 
+                subDir, err := TripCommand(jPath)
+                if err != nil {
+                    fmt.Printf("Error in directory %s: %v\n", jPath, err)
+                    return
+                }
+                dir.mu.Lock()
+                defer dir.mu.Unlock()
+                dir.Subdirectories[fdCopy.Name()] = subDir
+            }(jPath, fdCopy)
+        } else {
+            has, err := readFilesAsync(jPath)
+            if err != nil {
+                fmt.Printf("Error reading file %s: %v\n", jPath, err)
+                continue
+            }
+            dir.mu.Lock()
+            dir.Files = append(dir.Files, has)
+            dir.mu.Unlock()
+        }
+    }
+
+    wg.Wait()
+
+    return dir, nil
+}
+
+func printDirectory(dir *Directory) {
+	fmt.Println("-------------------")
+	fmt.Println("this is the dir ",dir.Path)
+	fmt.Println("-------------------")
+    for _, file := range dir.Files {
+        fmt.Println( file.AbPath)
+    }
+    
+    for _, subDir := range dir.Subdirectories {
+        printDirectory(subDir)
+    }
 }

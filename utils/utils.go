@@ -7,6 +7,7 @@ import (
 	"os"
 	"os/user"
 	"path"
+	"encoding/json"
 )
 
 const (

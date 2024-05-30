@@ -14,12 +14,12 @@ type Email_Creds struct {
 	Passwd string
 }
 
-func readTheConfig(c Email_Creds) (Email_Creds, error) {
+func (c *Email_Creds) readTheConfig () error{
 
 	email_conf, err := GetUser(LOG_DIR + "/email.json")
 
 	if err != nil {
-		return c, err
+		return  err
 	}
 
 	_, err = os.Stat(email_conf)
@@ -36,30 +36,37 @@ func readTheConfig(c Email_Creds) (Email_Creds, error) {
 
 		if err != nil {
 			slog.Error("Can't create a Email Creds file", err)
-			return Email_Creds{}, err
+			return  err
 
 		}
 	}
 
-	creds, err := ReadJson(email_conf, &Email_Creds{})
+	credsA, err := ReadJson(email_conf, &Email_Creds{})
 	if err != nil {
 
 		slog.Error("Can't read the creds", err)
 
-		return c, err
+		return err
 
 	}
 
-	if len(creds) != 1 {
+	if len(credsA) != 1 {
 		err := errors.New("Smth is wrong in the config file ")
-		return c, err
+		return err
 	}
 
-	return creds[0], nil
+
+	newCreds:= credsA[0]
+	c.Email= newCreds.Email
+	c.Passwd= newCreds.Passwd
+
+
+
+	return nil
 }
 
-func SendMessage(body string, creds Email_Creds) error {
-	creds, err := readTheConfig(creds)
+func SendMessage(body string, creds *Email_Creds) error {
+	err := creds.readTheConfig()
 	if err != nil {
 		slog.Error("Can't read the config", err)
 		return err

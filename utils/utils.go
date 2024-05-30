@@ -1,13 +1,13 @@
 package utils
 
 import (
+	"encoding/json"
 	"fmt"
 	"io"
 	"io/fs"
 	"os"
 	"os/user"
 	"path"
-	"encoding/json"
 )
 
 const (
@@ -15,7 +15,7 @@ const (
 	JSON_PATH = "test_file.json"
 )
 
-func Checkdir() {
+func Checkdir(fPath string) (string,error) {
 	user, err := user.Current()
 
 	if err != nil {
@@ -34,6 +34,21 @@ func Checkdir() {
 		os.Exit(1)
 	}
 
+	requestedF := path.Join(log_dir, fPath)
+	_, err = os.Stat(requestedF)
+
+	if os.IsNotExist(err) {
+		f, err := os.Create(fPath)
+		if err != nil {
+			fmt.Printf("Can't create the file %v due to %v\n", fPath, err)
+			return "",err
+		}
+		defer f.Close()
+	} else if err != nil {
+		return "",nil
+	}
+
+	return "",nil
 }
 
 func ScanDir(dir_path string) ([]fs.DirEntry, error) {
@@ -127,21 +142,21 @@ func CopyDir(src string, dst string) error {
 }
 
 func ReadJson[T any](jsonPath string, unmarshalS *T) ([]T, error) {
-    var records []T
+	var records []T
 
-    f, err := os.ReadFile(jsonPath)
-    if err != nil {
-        fmt.Println("Can't read the file:", err)
-        return nil, err
-    }
+	f, err := os.ReadFile(jsonPath)
+	if err != nil {
+		fmt.Println("Can't read the file:", err)
+		return nil, err
+	}
 
-    err = json.Unmarshal(f, unmarshalS)
-    if err != nil {
-        fmt.Println("Can't unmarshal the records:", err)
-        return nil, err
-    }
+	err = json.Unmarshal(f, unmarshalS)
+	if err != nil {
+		fmt.Println("Can't unmarshal the records:", err)
+		return nil, err
+	}
 
-    records = append(records, *unmarshalS)
+	records = append(records, *unmarshalS)
 
-    return records, nil
+	return records, nil
 }

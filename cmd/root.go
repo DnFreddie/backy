@@ -36,7 +36,6 @@ func Execute() {
 
 func init() {
 	// Here you will define your flags and configuration settings.
-	cobra.OnInitialize(utils.Checkdir)
 	// Cobra supports persistent flags, which, if defined here,
 	// will be global for your application.
 

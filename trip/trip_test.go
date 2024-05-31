@@ -5,7 +5,7 @@ import (
 )
 
 const (
-	TEST_PATH = "/home/aura/.config/"
+	TEST_PATH = "/home/aura/scripts/"
 )
 
 func TestAddPath(t *testing.T) {
@@ -23,12 +23,14 @@ func TestAddPath(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			test,err:= TripCommand(TEST_PATH)
+
+			err:= TripMain(TEST_PATH)
+
+
 			
 			if err != nil {
 				return  
 			}
-			printDirectory(test)
 		})
 
 	}

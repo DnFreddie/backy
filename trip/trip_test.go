@@ -5,7 +5,7 @@ import (
 )
 
 const (
-	TEST_PATH = "/home/aura/.config/"
+	TEST_PATH = "/home/aura/junk/"
 )
 
 func TestAddPath(t *testing.T) {

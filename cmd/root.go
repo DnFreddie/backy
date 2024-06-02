@@ -5,8 +5,6 @@ package cmd
 
 import (
 	"os"
-
-	"github.com/DnFreddie/backy/utils"
 	"github.com/spf13/cobra"
 )
 

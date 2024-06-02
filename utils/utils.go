@@ -14,41 +14,32 @@ const (
 	LOG_DIR   = ".user_log"
 	JSON_PATH = "test_file.json"
 )
+func Checkdir(fPath string) (string, error) {
+    user, err := user.Current()
+    if err != nil {
+        return "", fmt.Errorf("can't get the user: %v", err)
+    }
+    homeDir := user.HomeDir
 
-func Checkdir(fPath string) (string,error) {
-	user, err := user.Current()
+    logDir := path.Join(homeDir, LOG_DIR)
+    if err := os.MkdirAll(logDir, 0700); err != nil {
+        return "", fmt.Errorf("can't create the directory %v: %v", LOG_DIR, err)
+    }
 
-	if err != nil {
-		fmt.Printf("Can't get the user")
-		fmt.Println(err)
-		os.Exit(1)
-	}
-	home_dir := user.HomeDir
+    requestedF := path.Join(logDir, fPath)
+    _, err = os.Stat(requestedF)
+    if os.IsNotExist(err) {
+        f, err := os.Create(requestedF)
+        if err != nil {
+            return "", fmt.Errorf("can't create the file %v due to: %v", requestedF, err)
+        }
+        defer f.Close()
+        return requestedF, nil
+    } else if err != nil {
+        return "", fmt.Errorf("error checking for file %v: %v", requestedF, err)
+    }
 
-	log_dir := path.Join(home_dir, LOG_DIR)
-	err = os.MkdirAll(log_dir, 0700)
-
-	if err != nil {
-		fmt.Printf("Cant create the %v", LOG_DIR)
-		fmt.Println(err)
-		os.Exit(1)
-	}
-
-	requestedF := path.Join(log_dir, fPath)
-	_, err = os.Stat(requestedF)
-
-	if os.IsNotExist(err) {
-		f, err := os.Create(fPath)
-		if err != nil {
-			fmt.Printf("Can't create the file %v due to %v\n", fPath, err)
-			return "",err
-		}
-		defer f.Close()
-	} else if err != nil {
-		return "",nil
-	}
-
-	return "",nil
+    return requestedF, nil
 }
 
 func ScanDir(dir_path string) ([]fs.DirEntry, error) {

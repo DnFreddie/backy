@@ -9,19 +9,37 @@ import (
 	"gorm.io/gorm"
 )
 
-func checkSumFiles(ch chan utils.FileProps, wg *sync.WaitGroup, db *gorm.DB, fchan chan string) {
+type Status string
+
+const (
+    NotExist Status = "Not Exists"
+    Changed Status = "Changed"
+)
+
+type Compared struct {
+    Status
+    FilePath string
+    Dir      string
+}
+func checkSumFiles(ch chan utils.FileProps, wg *sync.WaitGroup, db *gorm.DB, fchan chan Compared) {
 	defer wg.Done()
 	for item := range ch {
-		var user utils.FileProps
+		user:= utils.FileProps{}
+		 comperdItem:= Compared{
+			FilePath: item.FilePath,
+			Dir: item.DirPath,
+		}
+
 		db.Where("file_path = ?", item.FilePath).Find(&user)
 		if reflect.ValueOf(user).IsZero() {
-			fchan <- item.FilePath
+			comperdItem.Status=NotExist
+			fchan <- comperdItem
 		} else {
 			compersion := compere(user, item)
 			if compersion != "" {
-				fchan <- fmt.Sprintf("comeperion is this %v", compersion)
+				comperdItem.Status=Changed
+				fchan <- comperdItem
 			}
-			user = utils.FileProps{}
 
 		}
 	}

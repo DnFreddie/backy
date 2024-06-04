@@ -14,32 +14,33 @@ const (
 	LOG_DIR   = ".user_log"
 	JSON_PATH = "test_file.json"
 )
+
 func Checkdir(fPath string) (string, error) {
-    user, err := user.Current()
-    if err != nil {
-        return "", fmt.Errorf("can't get the user: %v", err)
-    }
-    homeDir := user.HomeDir
+	user, err := user.Current()
+	if err != nil {
+		return "", fmt.Errorf("can't get the user: %v", err)
+	}
+	homeDir := user.HomeDir
 
-    logDir := path.Join(homeDir, LOG_DIR)
-    if err := os.MkdirAll(logDir, 0700); err != nil {
-        return "", fmt.Errorf("can't create the directory %v: %v", LOG_DIR, err)
-    }
+	logDir := path.Join(homeDir, LOG_DIR)
+	if err := os.MkdirAll(logDir, 0700); err != nil {
+		return "", fmt.Errorf("can't create the directory %v: %v", LOG_DIR, err)
+	}
 
-    requestedF := path.Join(logDir, fPath)
-    _, err = os.Stat(requestedF)
-    if os.IsNotExist(err) {
-        f, err := os.Create(requestedF)
-        if err != nil {
-            return "", fmt.Errorf("can't create the file %v due to: %v", requestedF, err)
-        }
-        defer f.Close()
-        return requestedF, nil
-    } else if err != nil {
-        return "", fmt.Errorf("error checking for file %v: %v", requestedF, err)
-    }
+	requestedF := path.Join(logDir, fPath)
+	_, err = os.Stat(requestedF)
+	if os.IsNotExist(err) {
+		f, err := os.Create(requestedF)
+		if err != nil {
+			return "", fmt.Errorf("can't create the file %v due to: %v", requestedF, err)
+		}
+		defer f.Close()
+		return requestedF, nil
+	} else if err != nil {
+		return "", fmt.Errorf("error checking for file %v: %v", requestedF, err)
+	}
 
-    return requestedF, nil
+	return requestedF, nil
 }
 
 func ScanDir(dir_path string) ([]fs.DirEntry, error) {
@@ -74,7 +75,7 @@ func GetUser(p string) (string, error) {
 
 }
 
-func CopyFile(src, dst string) error {
+func CopyFile(src, dest string) error {
 	var err error
 	var srcfd *os.File
 	var dstfd *os.File
@@ -85,7 +86,7 @@ func CopyFile(src, dst string) error {
 	}
 	defer srcfd.Close()
 
-	if dstfd, err = os.Create(dst); err != nil {
+	if dstfd, err = os.Create(dest); err != nil {
 		return err
 	}
 	defer dstfd.Close()
@@ -96,10 +97,10 @@ func CopyFile(src, dst string) error {
 	if srcinfo, err = os.Stat(src); err != nil {
 		return err
 	}
-	return os.Chmod(dst, srcinfo.Mode())
+	return os.Chmod(dest, srcinfo.Mode())
 }
 
-func CopyDir(src string, dst string) error {
+func CopyDir(src string, dest string) error {
 	var err error
 	var fds []fs.DirEntry
 	var srcinfo fs.FileInfo
@@ -108,7 +109,7 @@ func CopyDir(src string, dst string) error {
 		return err
 	}
 
-	if err = os.MkdirAll(dst, srcinfo.Mode()); err != nil {
+	if err = os.MkdirAll(dest, srcinfo.Mode()); err != nil {
 		return err
 	}
 
@@ -117,7 +118,7 @@ func CopyDir(src string, dst string) error {
 	}
 	for _, fd := range fds {
 		srcfp := path.Join(src, fd.Name())
-		dstfp := path.Join(dst, fd.Name())
+		dstfp := path.Join(dest, fd.Name())
 
 		if fd.IsDir() {
 			if err = CopyDir(srcfp, dstfp); err != nil {
@@ -133,24 +134,22 @@ func CopyDir(src string, dst string) error {
 }
 
 func ReadJson[T any](jsonPath string, records *[]T) error {
-    f, err := os.ReadFile(jsonPath)
-    if err != nil {
-        fmt.Println("Can't read the file:", err)
-        return err
-    }
-	//TODO makei so this returs error and the ccheck for it's type 
+	f, err := os.ReadFile(jsonPath)
+	if err != nil {
+		fmt.Println("Can't read the file:", err)
+		return err
+	}
+	//TODO makei so this returs error and the ccheck for it's type
 
-    if len(f) == 0 {
-        return nil
-    }
+	if len(f) == 0 {
+		return nil
+	}
 
+	err = json.Unmarshal(f, records)
+	if err != nil {
+		fmt.Println("Can't unmarshal the records:", err)
+		return err
+	}
 
-    err = json.Unmarshal(f, records)
-    if err != nil {
-        fmt.Println("Can't unmarshal the records:", err)
-        return err
-    }
-
-    return nil
+	return nil
 }
-

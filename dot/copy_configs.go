@@ -36,9 +36,9 @@ func CopyTemp(dotfiels []Dotfile) {
 		fullPath := path.Join(userConf, dot.Name())
 		fmt.Println(fullPath)
 		if dot.IsDir() {
-			err = utils.CopyDir(fullPath, path.Join(dst,dot.Name()))
+			err = utils.CopyDir(fullPath, path.Join(dst, dot.Name()))
 		} else {
-			err = utils.CopyFile(fullPath, path.Join(dst,dot.Name()))
+			err = utils.CopyFile(fullPath, path.Join(dst, dot.Name()))
 		}
 		if err != nil {
 			errMessages = append(errMessages, fmt.Errorf("failed to copy %s: %v", dot.Name(), err))

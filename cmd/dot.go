@@ -4,6 +4,9 @@ Copyright © 2024 NAME HERE <EMAIL ADDRESS>
 package cmd
 
 import (
+	"fmt"
+	"os"
+
 	"github.com/DnFreddie/backy/dot"
 	"github.com/spf13/cobra"
 )
@@ -23,31 +26,27 @@ var dotCmd = &cobra.Command{
 	`,
 	Run: func(cmd *cobra.Command, args []string) {
 
-		err:= dot.DotCommand()
+		err := dot.DotCommand("/home/aura/Documents/nixconfig/dotfiles/")
+
+		if err != nil {
+			fmt.Println(err)
+			os.Exit(1)
+		}
 		//var tmp  []dot.Dotfile
 		//dot.CopyTemp(tmp)
 
-
-
-		if err != nil {
-
-			return
-		}
-
-		
 	},
 }
 
 func init() {
 	rootCmd.AddCommand(dotCmd)
-
 	// Here you will define your flags and configuration settings.
-
 	// Cobra supports Persistent Flags which will work for this command
 	// and all subcommands, e.g.:
 	// dotCmd.PersistentFlags().String("foo", "", "A help for foo")
-
 	// Cobra supports local flags which will only run when this command
+	dotCmd.Flags().StringVarP(&addPath, "path", "p", "", "specyfie the dotfiels target dir ")
+	dotCmd.MarkFlagRequired("path")
 	// is called directly, e.g.:
 	// dotCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 }

@@ -9,7 +9,7 @@ import (
 	//"fmt"
 
 	"github.com/DnFreddie/backy/cmd"
-//	"github.com/DnFreddie/backy/utils"
+	// "github.com/DnFreddie/backy/utils"
 )
 
 func main() {
@@ -29,7 +29,6 @@ func main() {
 
 	// fmt.Println("whats' wrong")
 	// utils.Jsonyfie(test)
-// utils.ReadJson("./test_file.json")
-
+	// utils.ReadJson("./test_file.json")
 
 }

@@ -19,10 +19,8 @@ var tripCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		fmt.Println("trip called")
 
-
 	},
 }
-
 
 func init() {
 	rootCmd.AddCommand(tripCmd)

@@ -14,12 +14,12 @@ type Email_Creds struct {
 	Passwd string
 }
 
-func (c *Email_Creds) readTheConfig () error{
+func (c *Email_Creds) readTheConfig() error {
 
 	email_conf, err := GetUser(LOG_DIR + "/email.json")
 
 	if err != nil {
-		return  err
+		return err
 	}
 
 	_, err = os.Stat(email_conf)
@@ -36,13 +36,13 @@ func (c *Email_Creds) readTheConfig () error{
 
 		if err != nil {
 			slog.Error("Can't create a Email Creds file", err)
-			return  err
+			return err
 
 		}
 	}
 
 	var credsA []Email_Creds
-	err = ReadJson(email_conf , &credsA)
+	err = ReadJson(email_conf, &credsA)
 
 	if err != nil {
 
@@ -57,12 +57,9 @@ func (c *Email_Creds) readTheConfig () error{
 		return err
 	}
 
-
-	newCreds:= credsA[0]
-	c.Email= newCreds.Email
-	c.Passwd= newCreds.Passwd
-
-
+	newCreds := credsA[0]
+	c.Email = newCreds.Email
+	c.Passwd = newCreds.Passwd
 
 	return nil
 }

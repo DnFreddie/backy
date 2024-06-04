@@ -71,9 +71,8 @@ func Jsonyfie(FDirs []string) error {
 		}
 	}
 
-	
 	var Record []Brecord
-	err = utils.ReadJson(utils.JSON_PATH,&Record)
+	err = utils.ReadJson(utils.JSON_PATH, &Record)
 	if err != nil {
 		return err
 	}
@@ -94,5 +93,3 @@ func Jsonyfie(FDirs []string) error {
 
 	return nil
 }
-
-

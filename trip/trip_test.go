@@ -26,13 +26,11 @@ func TestAddPath(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 
 			//err:= TripMain(TEST_PATH)
-			xd,err := createConfig("ahshhahsahahshhashashhashh")
+			xd, err := createConfig("ahshhahsahahshhashashhashh")
 			fmt.Println(xd)
 
-
-			
 			if err != nil {
-				return  
+				return
 			}
 		})
 

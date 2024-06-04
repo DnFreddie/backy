@@ -25,11 +25,11 @@ func TestReadAndSendEmail(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			 err := tc.expected.readTheConfig()
+			err := tc.expected.readTheConfig()
 			if assert.NoError(t, err, "Error reading the config file") {
 				assert.Equal(t, tc.expected.Email, tc.expected.Email)
 				assert.Equal(t, tc.expected.Passwd, tc.expected.Passwd)
-				err = SendMessage(tc.body,	&tc.expected )
+				err = SendMessage(tc.body, &tc.expected)
 				if tc.wantErr {
 					assert.Error(t, err, "Expected an error while sending message")
 				} else {

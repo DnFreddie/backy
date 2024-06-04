@@ -23,15 +23,14 @@ This application is a tool to generate the needed files
 to quickly create a Cobra application.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		if addPath != "" {
-			_,err := os.Stat(addPath)
-			if err != nil{
+			_, err := os.Stat(addPath)
+			if err != nil {
 				fmt.Println("the driectry doesn't exist")
 				os.Exit(1)
 
 			}
-				trip.TripAdd(addPath)
+			trip.TripAdd(addPath)
 		}
-
 
 	},
 }
@@ -39,11 +38,11 @@ to quickly create a Cobra application.`,
 var (
 	addPath string
 )
+
 func init() {
 	tripCmd.AddCommand(addCmd)
-	addCmd.Flags().StringVarP(&addPath,"path","p","","the path to add to the scan")
+	addCmd.Flags().StringVarP(&addPath, "path", "p", "", "the path to add to the scan")
 	addCmd.MarkFlagRequired("path")
-
 
 	// Here you will define your flags and configuration settings.
 

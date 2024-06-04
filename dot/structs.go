@@ -6,6 +6,5 @@ type Dotfile struct {
 	Location fs.DirEntry
 	IsEx     bool
 	Symlink  string
-	BaseP string
+	BaseP    string
 }
-

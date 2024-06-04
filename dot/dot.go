@@ -2,24 +2,21 @@ package dot
 
 import (
 	"fmt"
+	"github.com/DnFreddie/backy/utils"
 	"io/fs"
-	"log"
 	"os"
 	"path"
 	"path/filepath"
-
 	"strings"
-
-	"github.com/DnFreddie/backy/utils"
 )
 
 const (
 	IGNORE = ".gitignore"
 )
 
-func DotCommand() error {
+func DotCommand(dotPath string) error {
 
-	dirPahts, err := GetPaths()
+	dirPahts, err := GetPaths(dotPath)
 	if err != nil {
 
 		fmt.Println(err)
@@ -28,58 +25,46 @@ func DotCommand() error {
 	}
 
 	dirStructs := Isexe(dirPahts)
-	err= CreateSymlink(dirStructs)
-	log.Fatal(err)
+	err = CreateSymlink(dirStructs, dotPath)
 
-return nil
+	if err != nil {
 
+		return err
+	}
+	return nil
 
 }
 
+func CreateSymlink(dotfiles []Dotfile, source string) error {
 
+	targetPath, err := utils.GetUser("Desktop")
 
-//TODO! Read about the context 
-func CreateSymlink(dotfiles[] Dotfile) error{
-
-targetPath ,err := utils.GetUser("Desktop")
-	
 	if err != nil {
 
-		return err 
+		return err
 	}
-	for _,f := range  dotfiles{
+	for _, f := range dotfiles {
 
-		//also if not existient
 		if f.IsEx {
+			symlinkPath := f.Location.Name()
+			sourceAbs := path.Join(source, symlinkPath)
+			dest := path.Join(targetPath, symlinkPath)
+			err := os.Symlink(sourceAbs, dest)
 
-	symlinkPath:= f.Location.Name()
-		err:= os.Symlink(symlinkPath,path.Join()) 
-			
 			if err != nil {
-				fmt.Println("failed to create ",symlinkPath,targetPath)
+				fmt.Println("failed to create ", err)
 				return err
 			}
 
-
-
 		}
-		fmt.Println("It's not exacatuble",f.Location.Name())
 	}
 
-
-
-
-return nil
+	return nil
 
 }
 
-
-
-
-
-
-func GetPaths() ([]fs.DirEntry, error) {
-	dirs, err := os.ReadDir("dotfiles_test")
+func GetPaths(gitPath string) ([]fs.DirEntry, error) {
+	dirs, err := os.ReadDir(gitPath)
 	//fmt.Println(dirs)
 	if err != nil {
 		fmt.Println("Can't list this dir probably permissions issue ", err)

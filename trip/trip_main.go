@@ -1,13 +1,10 @@
 package trip
 
 import (
-	"encoding/csv"
 	"errors"
 	"fmt"
 	"github.com/DnFreddie/backy/utils"
-	"gorm.io/gorm"
 	"log/slog"
-	"os"
 	"sync"
 )
 
@@ -125,66 +122,4 @@ func TripScan(csvPath string) error {
 	}
 
 	return nil
-}
-
-func writeToCsv(data *[]Compared, filePath string) error {
-	csvFile := filePath
-	_, err := os.Stat(csvFile)
-	if os.IsNotExist(err) {
-		f, err := os.Create(csvFile)
-		defer f.Close()
-		if err != nil {
-			return fmt.Errorf("can't create the file %v due to: %v", csvFile, err)
-		}
-
-		writer := csv.NewWriter(f)
-		data := [][]string{
-			{"status", "directory", "file_path"},
-		}
-		err = writer.WriteAll(data)
-
-		if err != nil {
-			slog.Error("Can't the record for the file ", csvFile, err)
-			return err
-		}
-	} else {
-
-		f, err := os.OpenFile(filePath, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
-		if err != nil {
-			return err
-		}
-		defer f.Close()
-
-		writer := csv.NewWriter(f)
-
-		defer writer.Flush()
-
-		for _, item := range *data {
-			formatData := []string{string(item.Status), item.Dir, item.FilePath}
-			if err := writer.Write(formatData); err != nil {
-				return fmt.Errorf("failed to write data: %w", err)
-			}
-		}
-	}
-	return nil
-
-}
-
-func processBatches(ch chan utils.FileProps, db *gorm.DB) {
-	var batch []utils.FileProps
-	var count int
-	for item := range ch {
-		count++
-		batch = append(batch, item)
-		if len(batch) == 100 {
-			db.CreateInBatches(batch, len(batch))
-			fmt.Println("Processed count during execution:", count)
-			batch = batch[:0]
-		}
-	}
-
-	if len(batch) > 0 {
-		db.CreateInBatches(batch, len(batch))
-		fmt.Println("Processed count during execution:", count)
-	}
 }

@@ -22,24 +22,23 @@ Cobra is a CLI library for Go that empowers applications.
 This application is a tool to generate the needed files
 to quickly create a Cobra application.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		
 
 		err := trip.TripScan(csvName)
-		if err !=nil{
+		if err != nil {
 			fmt.Println(err)
 			os.Exit(1)
 		}
 
-		
 	},
 }
 var (
 	csvName string
 )
+
 func init() {
 	tripCmd.AddCommand(scanCmd)
 
-	scanCmd.Flags().StringVarP(&csvName,"csv","c","","wirte to a given csv path")
+	scanCmd.Flags().StringVarP(&csvName, "csv", "c", "", "wirte to a given csv path")
 	// Here you will define your flags and configuration settings.
 
 	// Cobra supports Persistent Flags which will work for this command

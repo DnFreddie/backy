@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"fmt"
 	"reflect"
-	"sync"
 	"github.com/DnFreddie/backy/utils"
 	"gorm.io/gorm"
 )
@@ -21,8 +20,7 @@ type Compared struct {
     FilePath string
     Dir      string
 }
-func checkSumFiles(ch chan utils.FileProps, wg *sync.WaitGroup, db *gorm.DB, fchan chan Compared) {
-	defer wg.Done()
+func checkSumFiles(ch chan utils.FileProps,  db *gorm.DB, fchan chan Compared) {
 	for item := range ch {
 		user:= utils.FileProps{}
 		 comperdItem:= Compared{
@@ -31,6 +29,7 @@ func checkSumFiles(ch chan utils.FileProps, wg *sync.WaitGroup, db *gorm.DB, fch
 		}
 
 		db.Where("file_path = ?", item.FilePath).Find(&user)
+
 		if reflect.ValueOf(user).IsZero() {
 			comperdItem.Status=NotExist
 			fchan <- comperdItem

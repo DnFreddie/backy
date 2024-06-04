@@ -132,22 +132,25 @@ func CopyDir(src string, dst string) error {
 	return nil
 }
 
-func ReadJson[T any](jsonPath string, unmarshalS *T) ([]T, error) {
-	var records []T
+func ReadJson[T any](jsonPath string, records *[]T) error {
+    f, err := os.ReadFile(jsonPath)
+    if err != nil {
+        fmt.Println("Can't read the file:", err)
+        return err
+    }
+	//TODO makei so this returs error and the ccheck for it's type 
 
-	f, err := os.ReadFile(jsonPath)
-	if err != nil {
-		fmt.Println("Can't read the file:", err)
-		return nil, err
-	}
+    if len(f) == 0 {
+        return nil
+    }
 
-	err = json.Unmarshal(f, unmarshalS)
-	if err != nil {
-		fmt.Println("Can't unmarshal the records:", err)
-		return nil, err
-	}
 
-	records = append(records, *unmarshalS)
+    err = json.Unmarshal(f, records)
+    if err != nil {
+        fmt.Println("Can't unmarshal the records:", err)
+        return err
+    }
 
-	return records, nil
+    return nil
 }
+

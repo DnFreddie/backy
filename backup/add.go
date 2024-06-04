@@ -1,4 +1,4 @@
-package add
+package backup
 
 import (
 	"encoding/json"
@@ -72,16 +72,17 @@ func Jsonyfie(FDirs []string) error {
 	}
 
 	
-	jsonData, err := utils.ReadJson(utils.JSON_PATH,&Brecord{})
+	var Record []Brecord
+	err = utils.ReadJson(utils.JSON_PATH,&Record)
 	if err != nil {
 		return err
 	}
 
-	jsonData = append(jsonData, b_Record)
+	Record = append(Record, b_Record)
 
-	jr, err := json.Marshal(jsonData)
+	jr, err := json.Marshal(Record)
 	if err != nil {
-		fmt.Println("Can't marshal the records ", jsonData)
+		fmt.Println("Can't marshal the records ", Record)
 		return err
 	}
 

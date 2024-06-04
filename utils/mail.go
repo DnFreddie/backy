@@ -41,7 +41,9 @@ func (c *Email_Creds) readTheConfig () error{
 		}
 	}
 
-	credsA, err := ReadJson(email_conf, &Email_Creds{})
+	var credsA []Email_Creds
+	err = ReadJson(email_conf , &credsA)
+
 	if err != nil {
 
 		slog.Error("Can't read the creds", err)

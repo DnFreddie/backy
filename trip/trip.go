@@ -2,6 +2,7 @@ package trip
 
 import (
 	"encoding/csv"
+	"errors"
 	"fmt"
 	"github.com/DnFreddie/backy/utils"
 	"gorm.io/gorm"
@@ -10,69 +11,118 @@ import (
 	"sync"
 )
 
-func TripMain(fPath string) error {
-	var checkedArray []Compared
-	ch := make(chan utils.FileProps)
-	checked := make(chan Compared)
-	var wg sync.WaitGroup
+func TripAdd(fPath string) error {
 	db, err := utils.InitDb()
 	if err != nil {
 		return err
 	}
 
-	numWorkers := 20
-	wg.Add(numWorkers)
+	isNew, err := createConfig(fPath)
+	if err != nil {
+		return err
+	}
 
-	if !db.Migrator().HasTable(&utils.FileProps{}) {
-		err = db.AutoMigrate(&utils.FileProps{})
+	if isNew {
+		fmt.Printf("The %v does already exist in db. Try scan flag\n", fPath)
+		return nil
+	}
 
+	var wg sync.WaitGroup
+	ch := make(chan utils.FileProps)
+	numWorkers := 1
+
+	err = db.AutoMigrate(&utils.FileProps{})
+	if err != nil {
+		return err
+	}
+
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		scanRecursivly(fPath, db, ch)
+		close(ch)
+	}()
+
+	for i := 0; i < numWorkers; i++ {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			processBatches(ch, db)
+		}()
+	}
+
+	wg.Wait()
+	return nil
+}
+
+func TripScan(csvPath string) error {
+	confP, err := utils.Checkdir("scan_paths.json")
+	if err != nil {
+		return err
+	}
+
+	var ConfPaths []ConfigPath
+	err = utils.ReadJson(confP, &ConfPaths)
+	if err != nil {
+		return err
+	}
+
+	if len(ConfPaths) == 0 {
+		return errors.New("There are no paths in the config. First, add them with TripAdd")
+	}
+
+	db, err := utils.InitDb()
+	if err != nil {
+		return err
+	}
+
+	checked := make(chan Compared)
+	ch := make(chan utils.FileProps)
+	var checkedArray []Compared
+	fPath := ConfPaths[0].Fpath
+	var wg sync.WaitGroup
+	numWorkers := 5
+
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		scanRecursivly(fPath, db, ch)
+		close(ch)
+	}()
+
+	for i := 0; i < numWorkers; i++ {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			checkSumFiles(ch, db, checked)
+		}()
+	}
+
+	go func() {
+		wg.Wait()
+		close(checked)
+	}()
+
+	for i := range checked {
+		checkedArray = append(checkedArray, i)
+	}
+
+	if len(checkedArray) == 0 {
+		slog.Info("Everything is fine with this dir")
+	} else {
+		var csvName = "trip_scan.csv"
+
+		if csvPath != "" {
+			csvName = csvPath
+
+		}
+
+		err = writeToCsv(&checkedArray, csvName)
+		fmt.Println("The comparison scan is done, look in ", csvName)
 		if err != nil {
 			return err
 		}
-
-		go func() {
-			scanRecursivly(fPath, db, ch)
-			close(ch)
-		}()
-
-		for i := 0; i < numWorkers; i++ {
-			go processBatches(ch, &wg, db)
-		}
-
-		wg.Wait()
-	} else {
-		go func() {
-			scanRecursivly(fPath, db, ch)
-			close(ch)
-		}()
-
-		for i := 0; i < numWorkers; i++ {
-			go checkSumFiles(ch, &wg, db, checked)
-		}
-
-		go func() {
-			wg.Wait()
-			close(checked)
-		}()
-		for i := range checked {
-			checkedArray = append(checkedArray, i)
-
-		}
-
-		wg.Wait()
-		err = writeToCsv(&checkedArray, "test.csv")
 	}
-	if err != nil {
-		fmt.Println("smth went wrong wiht the csv")
-		return err
-
-	}
-
-	var count int64
-	if err := db.Model(&utils.FileProps{}).Count(&count).Error; err != nil {
-		return err
-	}
-	fmt.Println("Total count of FileProps:", count)
 
 	return nil
 }
@@ -83,7 +133,6 @@ func writeToCsv(data *[]Compared, filePath string) error {
 	if os.IsNotExist(err) {
 		f, err := os.Create(csvFile)
 		defer f.Close()
-
 		if err != nil {
 			return fmt.Errorf("can't create the file %v due to: %v", csvFile, err)
 		}
@@ -107,29 +156,27 @@ func writeToCsv(data *[]Compared, filePath string) error {
 		defer f.Close()
 
 		writer := csv.NewWriter(f)
+
 		defer writer.Flush()
 
 		for _, item := range *data {
 			formatData := []string{string(item.Status), item.Dir, item.FilePath}
-			fmt.Println(formatData)
 			if err := writer.Write(formatData); err != nil {
 				return fmt.Errorf("failed to write data: %w", err)
 			}
 		}
-
 	}
 	return nil
+
 }
 
-func processBatches(ch chan utils.FileProps, wg *sync.WaitGroup, db *gorm.DB) {
-	defer wg.Done()
+func processBatches(ch chan utils.FileProps, db *gorm.DB) {
 	var batch []utils.FileProps
 	var count int
-
 	for item := range ch {
 		count++
 		batch = append(batch, item)
-		if len(batch) == 300 {
+		if len(batch) == 100 {
 			db.CreateInBatches(batch, len(batch))
 			fmt.Println("Processed count during execution:", count)
 			batch = batch[:0]

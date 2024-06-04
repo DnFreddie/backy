@@ -1,11 +1,12 @@
 package trip
 
 import (
+	"fmt"
 	"testing"
 )
 
 const (
-	TEST_PATH = "/home/aura/junk/"
+	TEST_PATH = "/home/aura/.config/"
 )
 
 func TestAddPath(t *testing.T) {
@@ -24,7 +25,9 @@ func TestAddPath(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 
-			err:= TripMain(TEST_PATH)
+			//err:= TripMain(TEST_PATH)
+			xd,err := createConfig("ahshhahsahahshhashashhashh")
+			fmt.Println(xd)
 
 
 			

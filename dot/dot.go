@@ -15,8 +15,30 @@ import (
 )
 
 const (
-	IGNORE = ".gitignore"
+	IGNORE    = ".gitignore"
+	BACK_CONF = "back_conf"
 )
+
+func tempBack(source string, backupDir string) error {
+
+	_, err := os.Stat(source)
+
+	if os.IsNotExist(err) {
+		fmt.Println("No git ignore ")
+		return nil
+	}
+
+	dest := path.Join(backupDir, path.Base(source))
+	err = os.Rename(source, dest)
+
+	if err != nil {
+		return err
+	}
+	fmt.Println(dest)
+
+	return nil
+
+}
 
 // Returns the path to the repo
 func gitClone(url string) (string, error) {
@@ -75,6 +97,7 @@ func DotCommand(repo string) error {
 	}
 
 	dirStructs := Isexe(dirPaths)
+
 	err = CreateSymlink(dirStructs, dest)
 	if err != nil {
 		return err
@@ -90,17 +113,30 @@ func CreateSymlink(dotfiles []Dotfile, source string) error {
 
 		return err
 	}
+	backupDir, err := utils.Checkdir(BACK_CONF, false)
+	if err != nil {
+
+		return err
+	}
+
 	for _, f := range dotfiles {
 
 		if f.IsEx {
 			symlinkPath := f.Location.Name()
 			sourceAbs := path.Join(source, symlinkPath)
 			dest := path.Join(targetPath, symlinkPath)
-			err := os.Symlink(sourceAbs, dest)
-
+			err = tempBack(dest, backupDir)
 			if err != nil {
-				fmt.Println("failed to create ", err)
-				return err
+				fmt.Println(err)
+				continue
+			} else {
+
+				err = os.Symlink(sourceAbs, dest)
+
+				if err != nil {
+					fmt.Println("failed to create ", err)
+					return err
+				}
 			}
 
 		}

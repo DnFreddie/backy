@@ -91,7 +91,7 @@ type ConfigPath struct {
 
 func createConfig(scanPath string) (bool, error) {
 
-	confP, err := utils.Checkdir("scan_paths.json")
+	confP, err := utils.Checkdir("scan_paths.json",true)
 	var existed []ConfigPath
 
 	err = utils.ReadJson(confP, &existed)

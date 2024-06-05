@@ -53,7 +53,7 @@ func TripAdd(fPath string) error {
 }
 
 func TripScan(csvPath string) error {
-	confP, err := utils.Checkdir("scan_paths.json")
+	confP, err := utils.Checkdir("scan_paths.json",true)
 	if err != nil {
 		return err
 	}

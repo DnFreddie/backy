@@ -15,7 +15,7 @@ const (
 	JSON_PATH = "test_file.json"
 )
 
-func Checkdir(fPath string) (string, error) {
+func Checkdir(fPath string, file bool) (string, error) {
 	user, err := user.Current()
 	if err != nil {
 		return "", fmt.Errorf("can't get the user: %v", err)
@@ -23,19 +23,29 @@ func Checkdir(fPath string) (string, error) {
 	homeDir := user.HomeDir
 
 	logDir := path.Join(homeDir, LOG_DIR)
-	if err := os.MkdirAll(logDir, 0700); err != nil {
+	if err := os.MkdirAll(logDir, os.ModePerm); err != nil {
 		return "", fmt.Errorf("can't create the directory %v: %v", LOG_DIR, err)
 	}
 
 	requestedF := path.Join(logDir, fPath)
 	_, err = os.Stat(requestedF)
 	if os.IsNotExist(err) {
-		f, err := os.Create(requestedF)
-		if err != nil {
-			return "", fmt.Errorf("can't create the file %v due to: %v", requestedF, err)
+
+		if file {
+			f, err := os.Create(requestedF)
+			if err != nil {
+				return "", fmt.Errorf("can't create the file %v due to: %v", requestedF, err)
+			}
+			defer f.Close()
+			return requestedF, nil
+		} else {
+			err = os.MkdirAll(requestedF,os.ModePerm)
+			if err != nil {
+				return "", fmt.Errorf("can't create the file %v due to: %v", requestedF, err)
+			}
+
 		}
-		defer f.Close()
-		return requestedF, nil
+
 	} else if err != nil {
 		return "", fmt.Errorf("error checking for file %v: %v", requestedF, err)
 	}

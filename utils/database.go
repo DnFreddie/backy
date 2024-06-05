@@ -18,7 +18,7 @@ type FileProps struct {
 
 func InitDb() (*gorm.DB, error) {
 
-	db_path, err := Checkdir("trip_db.sqlite3")
+	db_path, err := Checkdir("trip_db.sqlite3",true)
 
 	if err != nil {
 		fmt.Println("Can't create a directroy ", err)

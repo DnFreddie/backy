@@ -2,39 +2,86 @@ package dot
 
 import (
 	"fmt"
-	"github.com/DnFreddie/backy/utils"
 	"io/fs"
+	"net/url"
 	"os"
+	"os/exec"
 	"path"
 	"path/filepath"
+	"regexp"
 	"strings"
+
+	"github.com/DnFreddie/backy/utils"
 )
 
 const (
 	IGNORE = ".gitignore"
 )
 
-func DotCommand(dotPath string) error {
-
-	dirPahts, err := GetPaths(dotPath)
-	if err != nil {
-
-		fmt.Println(err)
-		return err
-
+// Returns the path to the repo
+func gitClone(url string) (string, error) {
+	cmd := exec.Command("bash", "-c", "git clone "+url)
+	if err := cmd.Run(); err != nil {
+		return "", err
 	}
 
-	dirStructs := Isexe(dirPahts)
-	err = CreateSymlink(dirStructs, dotPath)
+	re := regexp.MustCompile(`[^/]+$`)
+
+	match := re.FindString(url)
+
+	pwd, err := os.Getwd()
 
 	if err != nil {
-
-		return err
+		return "", err
 	}
-	return nil
+
+	if strings.HasSuffix(match, ".git") {
+		match = strings.TrimSuffix(match, ".git")
+	}
+	pathToRepo := path.Join(pwd, match)
+
+	fmt.Println(pathToRepo)
+	return pathToRepo, nil
 
 }
 
+func DotCommand(repo string) error {
+	var isURL bool
+	var dest string
+
+	if strings.Contains(repo, "git@") {
+		isURL = true
+	} else {
+		_, err := url.ParseRequestURI(repo)
+		if err == nil {
+			isURL = true
+		}
+	}
+
+	if isURL {
+		clonedDest, err := gitClone(repo)
+		if err != nil {
+			return err
+		}
+		dest = clonedDest
+	} else {
+		dest = repo
+	}
+
+	dirPaths, err := GetPaths(dest)
+	if err != nil {
+		fmt.Println(err)
+		return err
+	}
+
+	dirStructs := Isexe(dirPaths)
+	err = CreateSymlink(dirStructs, dest)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
 func CreateSymlink(dotfiles []Dotfile, source string) error {
 
 	targetPath, err := utils.GetUser("Desktop")

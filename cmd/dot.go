@@ -26,7 +26,9 @@ var dotCmd = &cobra.Command{
 	`,
 	Run: func(cmd *cobra.Command, args []string) {
 
-		err := dot.DotCommand("/home/aura/Documents/nixconfig/dotfiles/")
+
+		err := dot.DotCommand(addPath)
+		fmt.Println("Ure dots has been imported checkout them :)")
 
 		if err != nil {
 			fmt.Println(err)
@@ -45,7 +47,7 @@ func init() {
 	// and all subcommands, e.g.:
 	// dotCmd.PersistentFlags().String("foo", "", "A help for foo")
 	// Cobra supports local flags which will only run when this command
-	dotCmd.Flags().StringVarP(&addPath, "path", "p", "", "specyfie the dotfiels target dir ")
+	dotCmd.Flags().StringVarP(&addPath, "path", "p", "", "specyfie the dotfiels target dir can be github url ")
 	dotCmd.MarkFlagRequired("path")
 	// is called directly, e.g.:
 	// dotCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")

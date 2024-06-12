@@ -15,9 +15,7 @@ type FileProps struct {
 	WasChanged bool
 }
 func InitDb( dbname string) (*gorm.DB, error) {
-
 	db_path, err := Checkdir(dbname,true)
-
 	if err != nil {
 		fmt.Println("Can't create a directroy ", err)
 		return nil, err

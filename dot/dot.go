@@ -47,6 +47,7 @@ func createTempBack(source string, backupDir string, csvF *csv.Writer) error {
 		fmt.Println(err)
 		return err
 	}
+	fmt.Println(dest)
 
 	return nil
 

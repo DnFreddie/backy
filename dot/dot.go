@@ -1,6 +1,7 @@
 package dot
 
 import (
+	"encoding/csv"
 	"fmt"
 	"io/fs"
 	"net/url"
@@ -10,6 +11,7 @@ import (
 	"path/filepath"
 	"regexp"
 	"strings"
+	"time"
 
 	"github.com/DnFreddie/backy/utils"
 )
@@ -19,7 +21,9 @@ const (
 	BACK_CONF = "back_conf"
 )
 
-func tempBack(source string, backupDir string) error {
+
+
+func createTempBack(source string, backupDir string, csvF *csv.Writer) error {
 
 	_, err := os.Stat(source)
 
@@ -34,7 +38,15 @@ func tempBack(source string, backupDir string) error {
 	if err != nil {
 		return err
 	}
-	fmt.Println(dest)
+	data := [][]string{
+		{source, dest},
+	}
+	err = csvF.WriteAll(data)
+
+	if err != nil {
+		fmt.Println(err)
+		return err
+	}
 
 	return nil
 
@@ -105,19 +117,28 @@ func DotCommand(repo string) error {
 
 	return nil
 }
+
 func CreateSymlink(dotfiles []Dotfile, source string) error {
 
 	targetPath, err := utils.GetUser("Desktop")
-
 	if err != nil {
 
 		return err
 	}
-	backupDir, err := utils.Checkdir(BACK_CONF, false)
-	if err != nil {
 
-		return err
+	nowT := time.Now().Format("20060102150405")
+
+	backupDir, err := utils.Checkdir(path.Join(BACK_CONF, nowT), false)
+	if err != nil {
+		fmt.Println(err)
 	}
+
+	f, err := os.Create(path.Join(backupDir,"test.csv"))
+	defer f.Close()
+	if err != nil {
+		fmt.Println(err)
+	}
+	writer := csv.NewWriter(f)
 
 	for _, f := range dotfiles {
 
@@ -125,7 +146,7 @@ func CreateSymlink(dotfiles []Dotfile, source string) error {
 			symlinkPath := f.Location.Name()
 			sourceAbs := path.Join(source, symlinkPath)
 			dest := path.Join(targetPath, symlinkPath)
-			err = tempBack(dest, backupDir)
+			err = createTempBack(dest, backupDir, writer)
 			if err != nil {
 				fmt.Println(err)
 				continue

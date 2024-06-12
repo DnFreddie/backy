@@ -7,9 +7,10 @@ import (
 	"log/slog"
 	"sync"
 )
+const DB_PATH="trip_db.sqlite3"
 
 func TripAdd(fPath string) error {
-	db, err := utils.InitDb()
+	db, err := utils.InitDb(DB_PATH)
 	if err != nil {
 		return err
 	}
@@ -68,7 +69,7 @@ func TripScan(csvPath string) error {
 		return errors.New("There are no paths in the config. First, add them with TripAdd")
 	}
 
-	db, err := utils.InitDb()
+	db, err := utils.InitDb(DB_PATH)
 	if err != nil {
 		return err
 	}

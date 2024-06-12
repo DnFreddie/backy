@@ -3,7 +3,6 @@ package utils
 import (
 	"fmt"
 	"log/slog"
-
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 )
@@ -15,10 +14,9 @@ type FileProps struct {
 	Hash       []byte
 	WasChanged bool
 }
+func InitDb( dbname string) (*gorm.DB, error) {
 
-func InitDb() (*gorm.DB, error) {
-
-	db_path, err := Checkdir("trip_db.sqlite3",true)
+	db_path, err := Checkdir(dbname,true)
 
 	if err != nil {
 		fmt.Println("Can't create a directroy ", err)

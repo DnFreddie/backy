@@ -27,7 +27,8 @@ var dotCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 
 
-		err := dot.DotCommand(addPath)
+		err := dot.RevertBackups()
+		//dot.DotCommand(addPath)
 		fmt.Println("Ure dots has been imported checkout them :)")
 
 		if err != nil {

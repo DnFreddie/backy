@@ -28,7 +28,8 @@ var dotCmd = &cobra.Command{
 
 
 		err := dot.RevertBackups()
-		//dot.DotCommand(addPath)
+		//err:= dot.DotCommand(addPath)
+		//fmt.Println("the changes has been suscefully reverted ")
 		fmt.Println("Ure dots has been imported checkout them :)")
 
 		if err != nil {

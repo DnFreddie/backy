@@ -5,6 +5,7 @@ import (
 	"encoding/csv"
 	"errors"
 	"fmt"
+	"github.com/DnFreddie/backy/utils"
 	"io"
 	"io/fs"
 	"log"
@@ -13,8 +14,6 @@ import (
 	"strconv"
 	"strings"
 	"time"
-
-	"github.com/DnFreddie/backy/utils"
 )
 
 func RevertBackups() error {
@@ -40,10 +39,9 @@ func RevertBackups() error {
 		fmt.Print("Choose the backup version\n")
 		for i, dir := range options {
 
-					
 			prettyName, err := time.Parse("20060102150405", dir.Name())
-			if err !=nil{
-				log.Fatal("U must have modyfied one of the directories Dont'Do that",err)
+			if err != nil {
+				log.Fatal("U must have modyfied one of the directories Dont'Do that", err)
 			}
 
 			cyan := "\033[0;36m"

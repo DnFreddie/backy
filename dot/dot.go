@@ -21,17 +21,17 @@ const (
 	BACK_CONF = "back_conf"
 )
 
-
-
 func createTempBack(source string, backupDir string, csvF *csv.Writer) error {
 
 	_, err := os.Stat(source)
 
 	if os.IsNotExist(err) {
 		fmt.Println("No git ignore ")
+		fmt.Println(err)
 		return nil
 	}
 
+	fmt.Println("why thsi source doens't work", source)
 	dest := path.Join(backupDir, path.Base(source))
 	err = os.Rename(source, dest)
 
@@ -47,7 +47,6 @@ func createTempBack(source string, backupDir string, csvF *csv.Writer) error {
 		fmt.Println(err)
 		return err
 	}
-	fmt.Println(dest)
 
 	return nil
 
@@ -134,7 +133,7 @@ func CreateSymlink(dotfiles []Dotfile, source string) error {
 		fmt.Println(err)
 	}
 
-	f, err := os.Create(path.Join(backupDir,"test.csv"))
+	f, err := os.Create(path.Join(backupDir, "test.csv"))
 	defer f.Close()
 	if err != nil {
 		fmt.Println(err)
@@ -147,20 +146,19 @@ func CreateSymlink(dotfiles []Dotfile, source string) error {
 			symlinkPath := f.Location.Name()
 			sourceAbs := path.Join(source, symlinkPath)
 			dest := path.Join(targetPath, symlinkPath)
-			err = createTempBack(dest, backupDir, writer)
+
+			//Checks weateter the file exist and moves it to backup dir 
+			err := createTempBack(dest, backupDir, writer)
 			if err != nil {
-				fmt.Println(err)
-				continue
-			} else {
-
-				err = os.Symlink(sourceAbs, dest)
-
-				if err != nil {
-					fmt.Println("failed to create ", err)
-					return err
-				}
+				fmt.Println("Error creating temporary backup:", err)
+				return err
 			}
 
+			err = os.Symlink(sourceAbs, dest)
+			if err != nil {
+				fmt.Println("Failed to create symlink:", err)
+				return err
+			}
 		}
 	}
 

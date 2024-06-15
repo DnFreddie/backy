@@ -1,9 +1,10 @@
-package dot
+package revert
 
 import (
 	"bufio"
 	"encoding/csv"
 	"fmt"
+	"github.com/DnFreddie/backy/dot"
 	"github.com/DnFreddie/backy/utils"
 	"io"
 	"log"
@@ -15,7 +16,7 @@ import (
 )
 
 func RevertBackups() error {
-	confDir, err := utils.Checkdir(BACK_CONF, false)
+	confDir, err := utils.Checkdir(dot.BACK_CONF, false)
 	if err != nil {
 		return err
 	}
@@ -34,9 +35,7 @@ func RevertBackups() error {
 		return err
 	}
 
-
 	chosenPath := path.Join(confDir, revDir.Name())
-	fmt.Println("this is the conf dir ",confDir)
 	if err := processReversion(chosenPath); err != nil {
 		fmt.Println(err)
 		return err
@@ -46,7 +45,31 @@ func RevertBackups() error {
 	if err != nil {
 		log.Fatal("Have you changed permission? This shouldn't have happened")
 	}
-	fmt.Println("succesfully removed ",chosenPath)
+	fmt.Println("succesfully removed ", chosenPath)
+
+	fmt.Println("The backup reversion was successful")
+	return nil
+}
+
+func processReversion(chosenPath string) error {
+
+	csvPath := path.Join(chosenPath, dot.REVERT_CSV)
+	_, err := os.Stat(csvPath)
+
+	if os.IsNotExist(err) {
+
+		log.Fatal("The schema for reversion doesn't exist")
+	}
+
+	f, err := os.Open(csvPath)
+	if err != nil {
+		return err
+	}
+	defer f.Close()
+
+	if err := revertFilesFromCSV(f); err != nil {
+		return err
+	}
 
 	return nil
 }
@@ -65,27 +88,27 @@ func revertFilesFromCSV(f *os.File) error {
 		if len(rec) != 2 {
 			log.Fatalf("unexpected number of columns in CSV: got %d, expected 2", len(rec))
 		}
-// /home/aura/desktop/nameofthefile
+		// /home/aura/desktop/nameofthefile
 		configPath := rec[0]
 		//new or the backup folder path
 		backupPath := rec[1]
 
-		fmt.Println(backupPath)
-		if backupPath =="new"{
+		if backupPath == "new" {
 			err = os.RemoveAll(configPath)
-			if err != nil{
+			if err != nil {
 				fmt.Println(err)
 			}
-			fmt.Println("Removed ",configPath)
+			fmt.Println("Removed:  ", configPath)
+
 			continue
-		}else{
-		_, err = os.Stat(backupPath)
-		if os.IsNotExist(err) {
-			fmt.Printf("Source file does not exist: %s\n", backupPath)
-			continue
-		} else if err != nil {
-			continue
-		}
+		} else {
+			_, err = os.Stat(backupPath)
+			if os.IsNotExist(err) {
+				fmt.Printf("Source file does not exist: %s\n", backupPath)
+				continue
+			} else if err != nil {
+				continue
+			}
 
 		}
 
@@ -137,28 +160,4 @@ func chooseBackupVersion(options []os.DirEntry) (os.DirEntry, error) {
 
 		return options[choice-1], nil
 	}
-}
-
-func processReversion(chosenPath string) error {
-
-
-	csvPath := path.Join(chosenPath, REVERT_CSV)
-	_, err := os.Stat(csvPath)
-	fmt.Println("this is the csv path ", csvPath)
-	if os.IsNotExist(err) {
-
-		log.Fatal("The schema for reversion doesn't exist")
-	}
-
-	f, err := os.Open(csvPath)
-	if err != nil {
-		return err
-	}
-	defer f.Close()
-
-	if err := revertFilesFromCSV(f); err != nil {
-		return err
-	}
-
-	return nil
 }

@@ -7,6 +7,7 @@ import (
 	"io/fs"
 	"os"
 	"os/user"
+
 	"path"
 )
 
@@ -39,7 +40,7 @@ func Checkdir(fPath string, file bool) (string, error) {
 			defer f.Close()
 			return requestedF, nil
 		} else {
-			err = os.MkdirAll(requestedF,os.ModePerm)
+			err = os.MkdirAll(requestedF, os.ModePerm)
 			if err != nil {
 				return "", fmt.Errorf("can't create the file %v due to: %v", requestedF, err)
 			}

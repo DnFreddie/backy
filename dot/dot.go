@@ -6,12 +6,8 @@ import (
 	"github.com/DnFreddie/backy/utils"
 	"io/fs"
 	"log"
-	"net/url"
 	"os"
-	"os/exec"
 	"path"
-	"path/filepath"
-	"regexp"
 	"strings"
 	"time"
 )
@@ -22,22 +18,17 @@ const (
 	REVERT_CSV = "schema.csv"
 )
 
-func IsUrl(str string) bool {
-	u, err := url.Parse(str)
-	return err == nil && u.Scheme != "" && u.Host != ""
-}
-
 func DotCommand(repo string) error {
-	var isURL bool
+	var URL bool
 	var dest string
 
 	if strings.Contains(repo, "git@") {
-		isURL = true
+		URL = true
 	} else {
-		isURL = IsUrl(repo)
+		URL = isUrl(repo)
 
 	}
-	if isURL {
+	if URL {
 		clonedDest, err := gitClone(repo)
 		if err != nil {
 			log.Fatal("Failed to copy url")
@@ -69,7 +60,7 @@ func DotCommand(repo string) error {
 
 	dirStructs := Isexe(dirPaths)
 
-	err = CreateSymlink(dirStructs, dest)
+	err = createSymlink(dirStructs, dest)
 	if err != nil {
 		return err
 	}
@@ -111,43 +102,7 @@ func createTempBack(source string, backupDir string, csvF *csv.Writer, sourceAbs
 
 }
 
-// Returns the path to the repo
-func gitClone(url string) (string, error) {
-	
-	go func() {
-		for {
-			for _, r := range `-\|/` {
-				fmt.Printf("\rCloning %c", r)
-				time.Sleep(100 * time.Millisecond)
-			}
-		}
-	}()
-
-
-	cmd := exec.Command("bash", "-c", "git clone "+url)
-	if err := cmd.Run(); err != nil {
-		return "", err
-	}
-	re := regexp.MustCompile(`[^/]+$`)
-
-	match := re.FindString(url)
-
-	pwd, err := os.Getwd()
-
-	if err != nil {
-		return "", err
-	}
-
-	if strings.HasSuffix(match, ".git") {
-		match = strings.TrimSuffix(match, ".git")
-	}
-	pathToRepo := path.Join(pwd, match)
-
-	return pathToRepo, nil
-
-}
-
-func CreateSymlink(dotfiles []Dotfile, source string) error {
+func createSymlink(dotfiles []Dotfile, source string) error {
 
 	targetPath, err := utils.GetUser("Desktop")
 	if err != nil {
@@ -213,7 +168,6 @@ func CreateSymlink(dotfiles []Dotfile, source string) error {
 
 func GetPaths(gitPath string) ([]fs.DirEntry, error) {
 	dirs, err := os.ReadDir(gitPath)
-	//fmt.Println(dirs)
 	if err != nil {
 		fmt.Println("Can't list this dir probably permissions issue ", err)
 		return nil, err
@@ -231,41 +185,7 @@ func GetPaths(gitPath string) ([]fs.DirEntry, error) {
 			paths = append(paths, dir)
 		}
 	}
-	//fmt.Printf("\nthih are the paths {%v}", paths)
 	return paths, nil
 }
 
-func shouldIgnore(fileName string, toIgnore []string) bool {
-	for _, pattern := range toIgnore {
-		if match, _ := filepath.Match(pattern, fileName); match {
-			//fmt.Printf("its a match {%v}  {%v} filename", pattern, fileName)
-			return true
 
-		}
-	}
-	return false
-}
-
-func readIgnore() ([]string, error) {
-
-	_, err := os.Stat(IGNORE)
-	if os.IsNotExist(err) {
-		fmt.Println("No git ignore ")
-		return nil, nil
-	}
-
-	c, err := os.ReadFile(IGNORE)
-	if err != nil {
-		fmt.Println("Can't read the file", err)
-		return nil, err
-	}
-
-	sc := string(c)
-
-	ignored := strings.Split(sc, "\n")
-	ignored = append(ignored, ".git")
-	ignored = append(ignored, IGNORE)
-
-	//fmt.Println("this are ignored", ignored)
-	return ignored, nil
-}

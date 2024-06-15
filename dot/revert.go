@@ -34,14 +34,19 @@ func RevertBackups() error {
 		return err
 	}
 
-	if err := processReversion(confDir, revDir); err != nil {
+
+	chosenPath := path.Join(confDir, revDir.Name())
+	fmt.Println("this is the conf dir ",confDir)
+	if err := processReversion(chosenPath); err != nil {
+		fmt.Println(err)
 		return err
 	}
 
-	err = os.RemoveAll(confDir)
+	err = os.RemoveAll(chosenPath)
 	if err != nil {
 		log.Fatal("Have you changed permission? This shouldn't have happened")
 	}
+	fmt.Println("succesfully removed ",chosenPath)
 
 	return nil
 }
@@ -58,36 +63,49 @@ func revertFilesFromCSV(f *os.File) error {
 			return err
 		}
 		if len(rec) != 2 {
-			return fmt.Errorf("unexpected number of columns in CSV: got %d, expected 2", len(rec))
+			log.Fatalf("unexpected number of columns in CSV: got %d, expected 2", len(rec))
 		}
+// /home/aura/desktop/nameofthefile
+		configPath := rec[0]
+		//new or the backup folder path
+		backupPath := rec[1]
 
-		source := rec[1]
-		dest := rec[0]
-
-		_, err = os.Stat(source)
+		fmt.Println(backupPath)
+		if backupPath =="new"{
+			err = os.RemoveAll(configPath)
+			if err != nil{
+				fmt.Println(err)
+			}
+			fmt.Println("Removed ",configPath)
+			continue
+		}else{
+		_, err = os.Stat(backupPath)
 		if os.IsNotExist(err) {
-			fmt.Printf("Source file does not exist: %s\n", source)
+			fmt.Printf("Source file does not exist: %s\n", backupPath)
 			continue
 		} else if err != nil {
-			return err
+			continue
 		}
 
-		_, err = os.Stat(dest)
+		}
+
+		_, err = os.Stat(configPath)
 		if !os.IsNotExist(err) {
-			err = os.Remove(dest)
+			fmt.Println(configPath)
+			err = os.RemoveAll(configPath)
 			if err != nil {
-				fmt.Printf("Error removing destination file %s: %v\n", dest, err)
+				fmt.Printf("Error removing destination file %s: %v\n", configPath, err)
 				continue
 			}
 		}
 
-		err = os.Rename(source, dest)
+		err = os.Rename(backupPath, configPath)
 		if err != nil {
-			fmt.Printf("Error renaming file from %s to %s: %v\n", source, dest, err)
+			fmt.Printf("Error renaming file from %s to %s: %v\n", backupPath, configPath, err)
 			continue
 		}
 
-		fmt.Printf("File reverted: %s to %s\n", source, dest)
+		fmt.Printf("File reverted: %s to %s\n", backupPath, configPath)
 	}
 
 	return nil
@@ -121,10 +139,8 @@ func chooseBackupVersion(options []os.DirEntry) (os.DirEntry, error) {
 	}
 }
 
-func processReversion(confDir string, revDir os.DirEntry) error {
+func processReversion(chosenPath string) error {
 
-	chosenPath := path.Join(confDir, revDir.Name())
-	fmt.Println(revDir.Name())
 
 	csvPath := path.Join(chosenPath, REVERT_CSV)
 	_, err := os.Stat(csvPath)

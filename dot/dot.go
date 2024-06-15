@@ -17,19 +17,22 @@ import (
 )
 
 const (
-	IGNORE    = ".gitignore"
-	BACK_CONF = "back_conf"
+	IGNORE     = ".gitignore"
+	BACK_CONF  = "back_conf"
 	REVERT_CSV = "schema.csv"
 )
 
-func createTempBack(source string, backupDir string, csvF *csv.Writer) error {
+func createTempBack(source string, backupDir string, csvF *csv.Writer,sourceAbs string ,newDest string) (bool,error) {
 
+	fmt.Println("this is the source ")
 	_, err := os.Stat(source)
+
+
 
 	if os.IsNotExist(err) {
 		fmt.Println("No git ignore ")
 		fmt.Println(err)
-		return nil
+		return false,nil
 	}
 
 	fmt.Println("why thsi source doens't work", source)
@@ -37,7 +40,7 @@ func createTempBack(source string, backupDir string, csvF *csv.Writer) error {
 	err = os.Rename(source, dest)
 
 	if err != nil {
-		return err
+		return false,err
 	}
 	data := [][]string{
 		{source, dest},
@@ -46,10 +49,15 @@ func createTempBack(source string, backupDir string, csvF *csv.Writer) error {
 
 	if err != nil {
 		fmt.Println(err)
-		return err
+		return false,nil
 	}
 
-	return nil
+	err = os.Symlink(sourceAbs, newDest)
+	if err != nil {
+		fmt.Println(err)
+		return false,nil
+}
+	return true,nil
 
 }
 
@@ -148,19 +156,34 @@ func CreateSymlink(dotfiles []Dotfile, source string) error {
 			sourceAbs := path.Join(source, symlinkPath)
 			dest := path.Join(targetPath, symlinkPath)
 
-			//Checks weateter the file exist and moves it to backup dir 
-			err := createTempBack(dest, backupDir, writer)
+			wasCreated,err := createTempBack(dest, backupDir, writer,sourceAbs,dest)
 			if err != nil {
 				fmt.Println("Error creating temporary backup:", err)
 				return err
 			}
 
+			fmt.Println("was created",wasCreated)
+			if !wasCreated{
+
 			err = os.Symlink(sourceAbs, dest)
+
 			if err != nil {
 				fmt.Println("Failed to create symlink:", err)
 				return err
 			}
+
+			data := [][]string{
+				{dest,"new"},
+			}
+
+			err = writer.WriteAll(data)
+
+			if err != nil {
+				return err
+			}
+
 		}
+			}
 	}
 
 	return nil

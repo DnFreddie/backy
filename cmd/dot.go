@@ -42,14 +42,27 @@ var dotCmd = &cobra.Command{
 	},
 }
 
+var revertCmd = &cobra.Command{
+		Use:   "revert",
+		Short: "revert",
+		Long:  "hahahh",
+		Run: func (cmd *cobra.Command, args []string) {
+			// Command implementation here
+		dot.RevertBackups()
+
+		},
+	}
+
+
+
+
+
+
+
 func init() {
 	rootCmd.AddCommand(dotCmd)
-	// Here you will define your flags and configuration settings.
-	// Cobra supports Persistent Flags which will work for this command
-	// and all subcommands, e.g.:
-	// dotCmd.PersistentFlags().String("foo", "", "A help for foo")
-	// Cobra supports local flags which will only run when this command
 	dotCmd.Flags().StringVarP(&addPath, "path", "p", "", "specyfie the dotfiels target dir can be github url ")
+	dotCmd.AddCommand(revertCmd)
 	dotCmd.MarkFlagRequired("path")
 	// is called directly, e.g.:
 	// dotCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")

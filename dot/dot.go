@@ -19,6 +19,7 @@ import (
 const (
 	IGNORE    = ".gitignore"
 	BACK_CONF = "back_conf"
+	REVERT_CSV = "schema.csv"
 )
 
 func createTempBack(source string, backupDir string, csvF *csv.Writer) error {
@@ -133,7 +134,7 @@ func CreateSymlink(dotfiles []Dotfile, source string) error {
 		fmt.Println(err)
 	}
 
-	f, err := os.Create(path.Join(backupDir, "test.csv"))
+	f, err := os.Create(path.Join(backupDir, REVERT_CSV))
 	defer f.Close()
 	if err != nil {
 		fmt.Println(err)

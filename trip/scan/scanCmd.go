@@ -1,18 +1,16 @@
 /*
 Copyright © 2024 NAME HERE <EMAIL ADDRESS>
 */
-package cmd
+package scan
 
 import (
 	"fmt"
-	"os"
-
-	"github.com/DnFreddie/backy/trip"
 	"github.com/spf13/cobra"
+	"os"
 )
 
 // scanCmd represents the scan command
-var scanCmd = &cobra.Command{
+var ScanCmd = &cobra.Command{
 	Use:   "scan",
 	Short: "A brief description of your command",
 	Long: `A longer description that spans multiple lines and likely contains examples
@@ -23,7 +21,9 @@ This application is a tool to generate the needed files
 to quickly create a Cobra application.`,
 	Run: func(cmd *cobra.Command, args []string) {
 
-		err := trip.TripScan(csvName)
+		fmt.Println("scan called")
+		err := TripScan(csvName)
+
 		if err != nil {
 			fmt.Println(err)
 			os.Exit(1)
@@ -36,16 +36,5 @@ var (
 )
 
 func init() {
-	tripCmd.AddCommand(scanCmd)
-
-	scanCmd.Flags().StringVarP(&csvName, "csv", "c", "", "wirte to a given csv path")
-	// Here you will define your flags and configuration settings.
-
-	// Cobra supports Persistent Flags which will work for this command
-	// and all subcommands, e.g.:
-	// scanCmd.PersistentFlags().String("foo", "", "A help for foo")
-
-	// Cobra supports local flags which will only run when this command
-	// is called directly, e.g.:
-	// scanCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+	ScanCmd.Flags().StringVarP(&csvName, "csv", "c", "", "wirte to a given csv path")
 }

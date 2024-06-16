@@ -12,13 +12,15 @@ import (
 	"sync"
 )
 
+const DB_PATH = "trip_db.sqlite3"
+
 type FileChanged struct {
 	AbPath     string
 	Hash       []byte
 	WasChanged bool
 }
 
-func scanRecursivly(fPath string, db *gorm.DB, ch chan utils.FileProps) error {
+func ScanRecursivly(fPath string, db *gorm.DB, ch chan utils.FileProps) error {
 	fds, err := os.ReadDir(fPath)
 	if err != nil {
 		return err
@@ -30,7 +32,7 @@ func scanRecursivly(fPath string, db *gorm.DB, ch chan utils.FileProps) error {
 			wg.Add(1)
 			go func(jPath string, db *gorm.DB, ch chan utils.FileProps) {
 				defer wg.Done()
-				err := scanRecursivly(jPath, db, ch)
+				err := ScanRecursivly(jPath, db, ch)
 				if err != nil {
 					fmt.Printf("Error in directory %s: %v\n", jPath, err)
 					return
@@ -89,9 +91,9 @@ type ConfigPath struct {
 	Fpath string `json:"fpath"`
 }
 
-func createConfig(scanPath string) (bool, error) {
+func CreateConfig(scanPath string) (bool, error) {
 
-	confP, err := utils.Checkdir("scan_paths.json",true)
+	confP, err := utils.Checkdir("scan_paths.json", true)
 	var existed []ConfigPath
 
 	err = utils.ReadJson(confP, &existed)

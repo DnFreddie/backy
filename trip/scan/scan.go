@@ -1,17 +1,14 @@
-package trip
+package scan
 
 import (
 	"bytes"
 	"encoding/csv"
 	"fmt"
-	"reflect"
-
 	"github.com/DnFreddie/backy/utils"
-	"log/slog"
-
-	"os"
-
 	"gorm.io/gorm"
+	"log/slog"
+	"os"
+	"reflect"
 )
 
 type Status string

@@ -5,11 +5,14 @@ package cmd
 
 import (
 	"fmt"
+
+	"github.com/DnFreddie/backy/trip/add"
+	"github.com/DnFreddie/backy/trip/scan"
 	"github.com/spf13/cobra"
 )
 
-// tripCmd represents the trip command
-var tripCmd = &cobra.Command{
+// TripCmd represents the trip command
+var TripCmd = &cobra.Command{
 	Use:   "trip",
 	Short: "Trip-wire mini scans ur directory and checksum it requiers absolute path",
 	Long: `
@@ -23,8 +26,7 @@ var tripCmd = &cobra.Command{
 }
 
 func init() {
-	rootCmd.AddCommand(tripCmd)
-	// Cobra supports local flags which will only run when this command
-	// is called directly, e.g.:
-	// tripCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+	rootCmd.AddCommand(TripCmd)
+	TripCmd.AddCommand(scan.ScanCmd)
+	TripCmd.AddCommand(add.AddCmd)
 }

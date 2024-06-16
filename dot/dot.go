@@ -16,6 +16,7 @@ const (
 	IGNORE     = ".gitignore"
 	BACK_CONF  = "back_conf"
 	REVERT_CSV = "schema.csv"
+	TARGET     = "Desktop"
 )
 
 func DotCommand(repo string) error {
@@ -77,7 +78,7 @@ func createTempBack(source string, backupDir string, csvF *csv.Writer, sourceAbs
 	}
 
 	dest := path.Join(backupDir, path.Base(source))
-	fmt.Println("Already exist",path.Base(dest))
+	fmt.Println("Already exist", path.Base(dest))
 	err = os.Rename(source, dest)
 
 	if err != nil {
@@ -104,7 +105,7 @@ func createTempBack(source string, backupDir string, csvF *csv.Writer, sourceAbs
 
 func createSymlink(dotfiles []Dotfile, source string) error {
 
-	targetPath, err := utils.GetUser("Desktop")
+	targetPath, err := utils.GetUser(TARGET)
 	if err != nil {
 
 		return err
@@ -146,7 +147,7 @@ func createSymlink(dotfiles []Dotfile, source string) error {
 					return err
 
 				}
-				fmt.Println("Created symilnk",path.Base(dest))
+				fmt.Println("Created symilnk", path.Base(dest))
 
 				data := [][]string{
 					{dest, "new"},
@@ -187,5 +188,3 @@ func GetPaths(gitPath string) ([]fs.DirEntry, error) {
 	}
 	return paths, nil
 }
-
-

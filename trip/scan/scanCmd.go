@@ -9,7 +9,6 @@ import (
 	"os"
 )
 
-// scanCmd represents the scan command
 var ScanCmd = &cobra.Command{
 	Use:   "scan",
 	Short: "A brief description of your command",

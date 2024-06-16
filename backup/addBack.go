@@ -5,39 +5,16 @@ import (
 	"fmt"
 	"github.com/DnFreddie/backy/utils"
 	"os"
-	"path/filepath"
 )
-
-func Add_command(args *[]string) error {
-	paths, err := Add_dir(args)
-
-	if err != nil {
-		return err
-	}
-	err = Jsonyfie(paths)
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
 
 func Add_dir(paths *[]string) ([]string, error) {
 	var newPaths []string
 
 	for _, p := range *paths {
-		new_path, err := filepath.Abs(p)
+		new_path, err := utils.MakeAbsoulute(p)
 		if err != nil {
-			fmt.Println("Error getting absolute path for:", p, "-", err)
-			continue
-		}
+			fmt.Println(p,"Doesn't exist")
 
-		_, err = os.Stat(new_path)
-		if os.IsNotExist(err) {
-			fmt.Println("File does not exist:", p)
-			continue
-		} else if err != nil {
-			fmt.Println("Error checking file:", err)
 			continue
 		}
 
@@ -45,6 +22,18 @@ func Add_dir(paths *[]string) ([]string, error) {
 	}
 
 	return newPaths, nil
+}
+
+type Brecord struct {
+	Category string   `json:"category"`
+	FDirs    []string `json:"f_dir"`
+	LMod     string   `json:"l_mod"`
+	Changes  Mchanges `json:"changes"`
+}
+
+type Mchanges struct {
+	Changed []string `json:"changed"`
+	MTime   []string `json:"m_time"`
 }
 
 func Jsonyfie(FDirs []string) error {

@@ -13,7 +13,7 @@ func TestAddPath(t *testing.T) {
 	}{
 		{
 			name:     "Correct paths array",
-			item:     []string{"xd", "Documents", "/etc/"},
+			item:     []string{"wrong", "Documents", "/etc/"},
 			expected: []string{"/etc"},
 		},
 	}

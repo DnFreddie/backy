@@ -12,7 +12,7 @@ var RevertCmd = &cobra.Command{
 	Long:  `Brings the confguration to the previouse state by deleting all the files
 	and moving back the one that existed before.It also deletes the specyfied backup directory`,
 	Run: func(cmd *cobra.Command, args []string) {
-		if cmd.Flags().Changed("date") {
+		if cmd.Flags().Changed("delete") {
 			deletBackup()
 
 		} else {
@@ -29,6 +29,6 @@ var RevertCmd = &cobra.Command{
 
 func init() {
 
-	RevertCmd.Flags().BoolVarP(&options, "delte", "d", false, "Delete the chosen config backup")
+	RevertCmd.Flags().BoolVarP(&options, "delete", "d", false, "Delete the chosen config backup")
 
 }

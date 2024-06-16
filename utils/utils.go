@@ -5,10 +5,11 @@ import (
 	"fmt"
 	"io"
 	"io/fs"
+	"log"
 	"os"
 	"os/user"
-
 	"path"
+	"path/filepath"
 )
 
 const (
@@ -163,4 +164,23 @@ func ReadJson[T any](jsonPath string, records *[]T) error {
 	}
 
 	return nil
+}
+func MakeAbsoulute(fPath string) (string, error) {
+	var dest string
+	if !filepath.IsAbs(fPath) {
+		pwd, err := os.Getwd()
+		if err != nil {
+			log.Fatal("Therse smth wrong with this directroy check perrmisons ")
+		}
+		dest = filepath.Join(pwd, fPath)
+
+	} else {
+		dest = fPath
+	}
+	_, err := os.Stat(dest)
+	if os.IsNotExist(err) {
+		return "", err
+	}
+
+	return dest, nil
 }

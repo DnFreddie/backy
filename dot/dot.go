@@ -39,21 +39,13 @@ func DotCommand(repo string) error {
 		dest = repo
 	}
 
-	if !path.IsAbs(dest) {
+	absDest, err := utils.MakeAbsoulute(dest)
 
-		pwd, err := os.Getwd()
-		if err != nil {
-			log.Fatal("Therse smth wrong with this directroy check perrmisons ")
-		}
-		dest = path.Join(pwd, dest)
-	}
-
-	_, err := os.Stat(dest)
-	if os.IsNotExist(err) {
+	if err != nil {
 		log.Fatalf("%v doesn't exist\n", path.Base(dest))
 	}
 
-	dirPaths, err := GetPaths(dest)
+	dirPaths, err := GetPaths(absDest)
 	if err != nil {
 		fmt.Println(err)
 		return err
@@ -61,7 +53,7 @@ func DotCommand(repo string) error {
 
 	dirStructs := Isexe(dirPaths)
 
-	err = createSymlink(dirStructs, dest)
+	err = createSymlink(dirStructs, absDest)
 	if err != nil {
 		return err
 	}

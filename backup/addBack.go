@@ -3,8 +3,10 @@ package backup
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/DnFreddie/backy/utils"
+	"log"
 	"os"
+
+	"github.com/DnFreddie/backy/utils"
 )
 
 func Add_dir(paths *[]string) ([]string, error) {
@@ -13,7 +15,7 @@ func Add_dir(paths *[]string) ([]string, error) {
 	for _, p := range *paths {
 		new_path, err := utils.MakeAbsoulute(p)
 		if err != nil {
-			fmt.Println(p,"Doesn't exist")
+			fmt.Println(p, "Doesn't exist")
 
 			continue
 		}
@@ -36,6 +38,10 @@ type Mchanges struct {
 	MTime   []string `json:"m_time"`
 }
 
+const (
+	BACK_PATH = "backy_back.json"
+)
+
 func Jsonyfie(FDirs []string) error {
 	b_Record := Brecord{
 		Category: "test",
@@ -43,25 +49,15 @@ func Jsonyfie(FDirs []string) error {
 		LMod:     "2024-05-14",
 	}
 
-	_, err := os.Stat("test_file.json")
-	if os.IsNotExist(err) {
-		fmt.Printf("/n File test_file.json  does not exist creating one ...")
-		b_RecordArray := []Brecord{b_Record}
-		jr, err := json.Marshal(b_RecordArray)
-		if err != nil {
-			fmt.Println("Can't marshal the record ", b_Record)
-			return err
-		}
-
-		err = os.WriteFile("test_file.json", jr, 0666)
-		if err != nil {
-			fmt.Println("Can't write to a file", err)
-			return err
-		}
+	bp, err := utils.Checkdir(BACK_PATH, true)
+	if err != nil {
+		log.Fatal(err)
 	}
 
 	var Record []Brecord
-	err = utils.ReadJson(utils.JSON_PATH, &Record)
+
+	err = utils.ReadJson(bp, &Record)
+
 	if err != nil {
 		return err
 	}
@@ -74,7 +70,7 @@ func Jsonyfie(FDirs []string) error {
 		return err
 	}
 
-	err = os.WriteFile("test_file.json", jr, 0666)
+	err = os.WriteFile(bp, jr, os.ModePerm)
 	if err != nil {
 		fmt.Println("Can't write to a file", err)
 		return err

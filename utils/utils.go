@@ -14,7 +14,6 @@ import (
 
 const (
 	LOG_DIR   = ".user_log"
-	JSON_PATH = "test_file.json"
 )
 
 func Checkdir(fPath string, file bool) (string, error) {

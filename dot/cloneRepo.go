@@ -9,20 +9,15 @@ import (
 	"path/filepath"
 	"regexp"
 	"strings"
-	"time"
+
+	"github.com/DnFreddie/backy/utils"
 )
 
 func gitClone(url string) (string, error) {
 
-	go func() {
-		for {
-			for _, r := range `-\|/` {
-				fmt.Printf("\rCloning %c", r)
-				time.Sleep(100 * time.Millisecond)
-			}
-		}
-	}()
+	done := make(chan bool)
 
+	utils.WaitingScreen(done,"Cloning")
 	cmd := exec.Command("bash", "-c", "git clone "+url)
 	if err := cmd.Run(); err != nil {
 		return "", err
@@ -41,6 +36,8 @@ func gitClone(url string) (string, error) {
 		match = strings.TrimSuffix(match, ".git")
 	}
 	pathToRepo := path.Join(pwd, match)
+
+	done <- true
 
 	return pathToRepo, nil
 

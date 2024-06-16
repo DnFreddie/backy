@@ -75,12 +75,13 @@ func writeToCsv(data *[]Compared, filePath string) error {
 			{"status", "directory", "file_path"},
 		}
 		err = writer.WriteAll(data)
+		writer.Flush()
 
 		if err != nil {
 			slog.Error("Can't the record for the file ", csvFile, err)
 			return err
 		}
-	} else {
+	} 
 
 		f, err := os.OpenFile(filePath, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
 		if err != nil {
@@ -98,7 +99,6 @@ func writeToCsv(data *[]Compared, filePath string) error {
 				return fmt.Errorf("failed to write data: %w", err)
 			}
 		}
-	}
 	return nil
 
 }

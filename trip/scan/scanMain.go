@@ -11,6 +11,8 @@ import (
 )
 
 func TripScan(csvPath string) error {
+	done := make(chan bool)
+	utils.WaitingScreen(done,"Scaning")
 	confP, err := utils.Checkdir("scan_paths.json", true)
 	if err != nil {
 		return err
@@ -73,11 +75,13 @@ func TripScan(csvPath string) error {
 		}
 
 		err = writeToCsv(&checkedArray, csvName)
-		fmt.Println("The comparison scan is done, look in ", csvName)
 		if err != nil {
 			return err
 		}
+		done <- true
+		fmt.Println("\nThe comparison scan is done, look in ", csvName)
 	}
+
 
 	return nil
 }

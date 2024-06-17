@@ -4,40 +4,43 @@ Copyright © 2024 NAME HERE <EMAIL ADDRESS>
 package cmd
 
 import (
+	"fmt"
+
+	//"github.com/DnFreddie/backy/backup"
 	"github.com/DnFreddie/backy/backup"
 	"github.com/spf13/cobra"
 )
 
+var backuped bool
+var archive bool
 var backupCmd = &cobra.Command{
 	Use:   "backup",
-	Short: "A brief description of your command",
-	Long: `A longer description that spans multiple lines and likely contains examples
-and usage of using your command. For example:
-
-Cobra is a CLI library for Go that empowers applications.
-This application is a tool to generate the needed files
-to quickly create a Cobra application.`,
+	Short: "Add the patsh that can be later backuped ",
+	Long: `
+	Add the paths that can be later backuped
+	`,
 	Run: func(cmd *cobra.Command, args []string) {
 		if len(args) == 0 {
 
 			cmd.Help()
 		} else {
 
-			backup.Add_command(&args)
+			if backuped {
+				backup.Add_command(&args)
+				fmt.Println("Backuped called")
+				backup.Back(&args)
+
+			}
+			if archive{
+				fmt.Println("archive")
+			}
 		}
 	},
 }
 
 func init() {
 	rootCmd.AddCommand(backupCmd)
+	backupCmd.Flags().BoolVarP(&backuped, "back", "b", false, "instant backup")
+	backupCmd.Flags().BoolVarP(&archive, "archive", "a", false, "archived the paths")
 
-	// Here you will define your flags and configuration settings.
-
-	// Cobra supports Persistent Flags which will work for this command
-	// and all subcommands, e.g.:
-	// backupCmd.PersistentFlags().String("foo", "", "A help for foo")
-
-	// Cobra supports local flags which will only run when this command
-	// is called directly, e.g.:
-	// backupCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 }

@@ -20,7 +20,7 @@ func TestAddPath(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			r, err := Add_dir(&tc.item)
+			r, err := addDir(&tc.item)
 			assert.Nil(t, err)
 			assert.Equal(t, tc.expected, r)
 		})

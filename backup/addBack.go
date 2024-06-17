@@ -37,25 +37,22 @@ type Brecord struct {
 
 func addPaths(FDirs []string) error {
 
-	db, err := utils.InitDb(BACK_PATH,&Brecord{})
+	db, err := utils.InitDb(BACK_PATH, &Brecord{})
 
 	if err != nil {
 		return err
 	}
 
-
-	for _ ,f := range FDirs{
+	for _, f := range FDirs {
 
 		record := Brecord{
 			TargetPath: f,
-			CurrPath: f,
+			CurrPath:   f,
 		}
-		fmt.Println(path.Base(f),"was successfully added")
-
+		fmt.Println(path.Base(f), "was successfully added")
 
 		db.Create(&record)
 	}
-
 
 	return nil
 

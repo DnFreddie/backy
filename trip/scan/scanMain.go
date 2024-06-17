@@ -28,7 +28,7 @@ func TripScan(csvPath string) error {
 		return errors.New("There are no paths in the config. First, add them with TripAdd")
 	}
 
-	db, err := utils.InitDb(trip.DB_PATH)
+	db, err := utils.InitDb(trip.DB_PATH,nil)
 	if err != nil {
 		return err
 	}

@@ -3,7 +3,7 @@ package backup
 import "fmt"
 
 func Add_command(args *[]string) error {
-	paths, err := Add_dir(args)
+	paths, err := addDir(args)
 
 	if err != nil {
 		return err
@@ -12,7 +12,7 @@ func Add_command(args *[]string) error {
 		fmt.Println("Skipping... Nothing to add ")
 		return nil
 	}
-	err = Jsonyfie(paths)
+	err = addPaths(paths)
 	if err != nil {
 		return err
 	}

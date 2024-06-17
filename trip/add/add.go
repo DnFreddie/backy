@@ -10,7 +10,7 @@ import (
 )
 
 func TripAdd(fPath string) error {
-	db, err := utils.InitDb(trip.DB_PATH)
+	db, err := utils.InitDb(trip.DB_PATH,&utils.FileProps{})
 	if err != nil {
 		return err
 	}
@@ -28,11 +28,6 @@ func TripAdd(fPath string) error {
 	var wg sync.WaitGroup
 	ch := make(chan utils.FileProps)
 	numWorkers := 1
-
-	err = db.AutoMigrate(&utils.FileProps{})
-	if err != nil {
-		return err
-	}
 
 	wg.Add(1)
 	go func() {

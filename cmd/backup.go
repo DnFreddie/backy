@@ -22,6 +22,7 @@ var backupCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		if len(args) == 0 {
 
+		// If this is a file, write its contents to the zip archive
 			cmd.Help()
 		} else {
 
@@ -33,6 +34,8 @@ var backupCmd = &cobra.Command{
 			}
 			if archive{
 				fmt.Println("archive")
+				err := backup.ZipDir("/home/aura/Documents/Notes/","./ans.zip")
+				fmt.Println(err)
 			}
 		}
 	},

@@ -5,9 +5,11 @@ package cmd
 
 import (
 	"fmt"
+	"time"
 
 	//"github.com/DnFreddie/backy/backup"
 	"github.com/DnFreddie/backy/backup"
+	"github.com/DnFreddie/backy/backup/deamon"
 	"github.com/spf13/cobra"
 )
 
@@ -22,20 +24,22 @@ var backupCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		if len(args) == 0 {
 
-		// If this is a file, write its contents to the zip archive
 			cmd.Help()
+			backup.Add_command(&args)
 		} else {
 
 			if backuped {
-				backup.Add_command(&args)
-				fmt.Println("Backuped called")
 				backup.Back(&args)
 
 			}
-			if archive{
-				fmt.Println("archive")
-				err := backup.ZipDir("/home/aura/Documents/Notes/","./ans.zip")
-				fmt.Println(err)
+			if archive {
+				now := time.Now().Format("20060102150405")
+				zipPath:=fmt.Sprintf("%v.zip",now)
+				err := backup.ZipDir(args, zipPath)
+				if err != nil {
+
+					fmt.Println(err)
+				}
 			}
 		}
 	},
@@ -45,5 +49,6 @@ func init() {
 	rootCmd.AddCommand(backupCmd)
 	backupCmd.Flags().BoolVarP(&backuped, "back", "b", false, "instant backup")
 	backupCmd.Flags().BoolVarP(&archive, "archive", "a", false, "archived the paths")
-
+	backupCmd.AddCommand(deamon.DeamonCmd)
+	
 }

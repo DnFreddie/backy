@@ -11,6 +11,19 @@
 
 ### Current Functionality
 
+#### Backup 
+Fro now backuping and archiving directories work  with `-b -a`
+
+`-a ` Creates the archive based on the specified files  adn outputs them into the current dir
+```bash
+backy backup  -a <files and directoreies> 
+`
+`-b` Bacups the given targets in a $HOME/.user_log/backups/ with the schema 
+soon there will be a revert option for this 
+```bash 
+backy backup  -b <files and directoreies> 
+`
+
 #### Dotfiles
 Recognize the repository or path to your dotfiles and copy all the executables. Ensure to change the default location from *Desktop* to *.config* in the code for proper functionality.
 

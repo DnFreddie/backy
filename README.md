@@ -12,7 +12,7 @@
 ### Current Functionality
 
 #### Backup 
-Fro now backuping and archiving directories work  with `-b -a`
+For now backuping and archiving directories work  with `-b -a`
 
 `-a ` Creates the archive based on the specified files  adn outputs them into the current dir
 ```bash

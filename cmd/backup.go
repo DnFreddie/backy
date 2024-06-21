@@ -22,10 +22,10 @@ var backupCmd = &cobra.Command{
 	Add the paths that can be later backuped
 	`,
 	Run: func(cmd *cobra.Command, args []string) {
+		backup.Add_command(&args)
 		if len(args) == 0 {
 
 			cmd.Help()
-			backup.Add_command(&args)
 		} else {
 
 			if backuped {

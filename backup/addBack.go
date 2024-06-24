@@ -6,6 +6,7 @@ import (
 
 	"github.com/DnFreddie/backy/utils"
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 )
 
 func addDir(paths *[]string) ([]string, error) {
@@ -35,6 +36,7 @@ type Brecord struct {
 	CurrPath   string
 }
 
+// https://gorm.io/docs/create.html#Upsert-x2F-On-Conflict
 func addPaths(FDirs []string) error {
 
 	db, err := utils.InitDb(BACK_PATH, &Brecord{})
@@ -51,7 +53,10 @@ func addPaths(FDirs []string) error {
 		}
 		fmt.Println(path.Base(f), "was successfully added")
 
-		db.Create(&record)
+		db.Clauses(clause.OnConflict{
+			Columns:   []clause.Column{{Name: "id"}},
+			DoUpdates: clause.Assignments(map[string]interface{}{"role": "user"}),
+		}).Create(&record)
 	}
 
 	return nil

@@ -93,7 +93,6 @@ func ReadJson[T any](jsonPath string, records *[]T) error {
 		fmt.Println("Can't read the file:", err)
 		return err
 	}
-	//TODO makei so this returs error and the ccheck for it's type
 
 	if len(f) == 0 {
 		return nil

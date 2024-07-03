@@ -16,8 +16,8 @@ const (
 	IGNORE     = ".gitignore"
 	BACK_CONF  = "back_conf"
 	REVERT_CSV = "schema.csv"
-	TARGET     = "Desktop"
 )
+var TARGET = "Desktop"
 
 func DotCommand(repo string) error {
 	var URL bool

@@ -7,21 +7,21 @@ import (
 	"fmt"
 
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 )
 
 // deamonCmd represents the deamon command
 var DeamonCmd = &cobra.Command{
 	Use:   "deamon",
-	Short: "A brief description of your command",
-	Long: `A longer description that spans multiple lines and likely contains examples
-and usage of using your command. For example:
-
-Cobra is a CLI library for Go that empowers applications.
-This application is a tool to generate the needed files
-to quickly create a Cobra application.`,
+	Short: "Start a backy  deamon that backups the files daily ",
+	Long: `
+		Starts a backy daemon to backup files as they are added.
+		By default, backups occur daily; you can modify this setting in .backy.yaml using the cron_time field.`,
+	
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("Deamon Started ")
-		loopEternally()
+		c:= viper.GetViper().GetString("cron_time")
+		fmt.Println("Deamon started ")
+		loopEternally(c)
 	},
 }
 

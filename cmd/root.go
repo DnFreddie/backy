@@ -4,8 +4,10 @@ Copyright © 2024 NAME HERE <EMAIL ADDRESS>
 package cmd
 
 import (
-	"github.com/spf13/cobra"
 	"os"
+
+	"github.com/DnFreddie/backy/config"
+	"github.com/spf13/cobra"
 )
 
 // rootCmd represents the base command when called without any subcommands
@@ -33,6 +35,7 @@ func Execute() {
 }
 
 func init() {
+	cobra.OnInitialize(config.LoadConfig)
 
 	rootCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 

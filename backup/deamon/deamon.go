@@ -8,7 +8,7 @@ import (
 	"log"
 )
 
-func loopEternally() {
+func loopEternally(croneRecord string) {
 	db, err := utils.InitDb(backup.BACK_PATH, backup.Brecord{})
 	if err != nil {
 		log.Fatal("Failed to connect to the db:", err)
@@ -16,7 +16,7 @@ func loopEternally() {
 
 	c := cron.New()
 
-	_, err = c.AddFunc("1 * * * * ", func() {
+	_, err = c.AddFunc(croneRecord, func() {
 		var records []backup.Brecord
 		var paths []string
 
@@ -28,7 +28,6 @@ func loopEternally() {
 		}
 
 		for _, record := range records {
-			fmt.Println(record)
 			paths = append(paths, record.TargetPath)
 
 		}

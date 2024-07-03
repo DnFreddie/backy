@@ -64,18 +64,13 @@ func (c *Email_Creds) readTheConfig() error {
 	return nil
 }
 
-func SendMessage(body string, creds *Email_Creds) error {
-	err := creds.readTheConfig()
-	if err != nil {
-		slog.Error("Can't read the config", err)
-		return err
-	}
+func SendMessage(body string, email ,passw  string ) error {
 	msg := gomail.NewMessage()
-	msg.SetHeader("From", creds.Email)
-	msg.SetHeader("To", creds.Email)
+	msg.SetHeader("From", email)
+	msg.SetHeader("To", email)
 	msg.SetBody("text", body)
 
-	n := gomail.NewDialer("smtp.gmail.com", 587, creds.Email, creds.Passwd)
+	n := gomail.NewDialer("smtp.gmail.com", 587, email, passw)
 
 	if err := n.DialAndSend(msg); err != nil {
 		slog.Error("Can't send the message", err)

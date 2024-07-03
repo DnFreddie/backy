@@ -6,9 +6,11 @@ package cmd
 import (
 	"fmt"
 	"os"
+
 	"github.com/DnFreddie/backy/dot"
 	"github.com/DnFreddie/backy/dot/revert"
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 )
 
 var configPath string
@@ -29,6 +31,8 @@ var dotCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 
 
+
+		dot.TARGET = viper.GetViper().GetString("config_path")
 		//err := dot.RevertBackups()
 		err:= dot.DotCommand(configPath)
 

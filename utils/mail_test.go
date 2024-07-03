@@ -29,7 +29,7 @@ func TestReadAndSendEmail(t *testing.T) {
 			if assert.NoError(t, err, "Error reading the config file") {
 				assert.Equal(t, tc.expected.Email, tc.expected.Email)
 				assert.Equal(t, tc.expected.Passwd, tc.expected.Passwd)
-				err = SendMessage(tc.body, &tc.expected)
+				err = SendMessage(tc.body, tc.expected.Email,tc.expected.Passwd)
 				if tc.wantErr {
 					assert.Error(t, err, "Expected an error while sending message")
 				} else {

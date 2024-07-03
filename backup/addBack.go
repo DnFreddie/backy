@@ -32,33 +32,30 @@ const (
 
 type Brecord struct {
 	*gorm.Model
-	TargetPath string
+	TargetPath string `gorm:"unique"`
 	CurrPath   string
 }
 
 // https://gorm.io/docs/create.html#Upsert-x2F-On-Conflict
 func addPaths(FDirs []string) error {
-
 	db, err := utils.InitDb(BACK_PATH, &Brecord{})
-
 	if err != nil {
 		return err
 	}
 
 	for _, f := range FDirs {
-
 		record := Brecord{
 			TargetPath: f,
-			CurrPath:   f,
+			CurrPath:   path.Base(f),
 		}
 		fmt.Println(path.Base(f), "was successfully added")
 
 		db.Clauses(clause.OnConflict{
-			Columns:   []clause.Column{{Name: "id"}},
-			DoUpdates: clause.Assignments(map[string]interface{}{"role": "user"}),
+			Columns:   []clause.Column{{Name: "target_path"}}, 
+			DoUpdates: clause.Assignments(map[string]interface{}{"target_path": f}), 
 		}).Create(&record)
 	}
 
 	return nil
-
 }
+

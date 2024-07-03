@@ -11,13 +11,14 @@ import (
 
 var ScanCmd = &cobra.Command{
 	Use:   "scan",
-	Short: "A brief description of your command",
-	Long: `A longer description that spans multiple lines and likely contains examples
-and usage of using your command. For example:
+	Short: "Scanning the directory and checking the difference in the hash of the files",
+	Long: `
 
-Cobra is a CLI library for Go that empowers applications.
-This application is a tool to generate the needed files
-to quickly create a Cobra application.`,
+Tripwire main functionality:
+It scans the specified directory to detect any changes in the files' content.
+The tool then outputs the current state in CSV format.
+
+`,
 	Run: func(cmd *cobra.Command, args []string) {
 
 		err := TripScan(csvName)

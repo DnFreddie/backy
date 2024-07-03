@@ -11,9 +11,17 @@
 
 ### Current Functionality
 
-
 #### Backup 
-For now, backing up and archiving directories works with `-b -a`
+
+It adds the paths "fiels and folders" to the  database for the daemon that will backup them daily
+
+The backups are located in the *$HOME/.user_log/backups/*
+
+Don't worry about adding duplicates 
+
+```bash 
+backup <filename direcroyName>
+```
 
 `-a` Creates the archive based on the specified files and outputs them into the current directory
 ```bash
@@ -24,10 +32,22 @@ backy backup -a <files and directories>
 ```bash
 backy backup -b <files and directories>
 ```
+##### deamon 
+
+It's starts the deamon that checks the **.backy.yaml** in the homedir for the **corne_time** variable
+the default is set to **cron_time: "@daily"** but u can change it as u please  in the config  
+ 
+```bash 
+
+backy backup deamon 
+
+```
+
+*It's highly recomeded to add this to the startup commands so it will do regular backups*
 
 
 #### Dotfiles
-Recognize the repository or path to your dotfiles and copy all the executables. Ensure to change the default location from *Desktop* to *.config* in the code for proper functionality.
+Recognize the repository or path to your dotfiles and copy all the executables. 
 
 ```bash
 backy dot -p <path to the dotfiles or the GitHub URL>
@@ -56,3 +76,24 @@ backy trip scan
 ```
 
 Use the `-c` flag to specify the CSV name. By default, it is named **trip_scan.csv**.
+
+#### Config file 
+For now the app looks for the `.backy.yaml` in two palaces 
+- Home directory
+- .config
+
+```bash 
+
+#Default configuration
+
+#Email is for pushing notyfications(still developed)
+email_creds:
+  email: your_email@example.com
+  passw: your_password
+# This is the varaible for the chron daemon
+cron_time: "@daily"
+## This is the defualt value for the dotfiles 
+config_path: ".config"
+
+```
+

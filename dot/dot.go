@@ -17,7 +17,7 @@ const (
 	BACK_CONF  = "back_conf"
 	REVERT_CSV = "schema.csv"
 )
-var TARGET = "Desktop"
+var TARGET  string
 
 func DotCommand(repo string) error {
 	var URL bool

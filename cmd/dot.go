@@ -14,7 +14,7 @@ import (
 )
 
 var configPath string
-// dotCmd represents the dot command
+
 var dotCmd = &cobra.Command{
 	Use:   "dot",
 	Short: "Imports docs files or intsall specyifed",
@@ -30,32 +30,20 @@ var dotCmd = &cobra.Command{
 	`,
 	Run: func(cmd *cobra.Command, args []string) {
 
-
-
 		dot.TARGET = viper.GetViper().GetString("config_path")
-		//err := dot.RevertBackups()
-		err:= dot.DotCommand(configPath)
+		err := dot.DotCommand(configPath)
 
 		if err != nil {
 			fmt.Println(err)
 			os.Exit(1)
 		}
 		fmt.Println("Ure dots has been imported checkout them :)")
-		//var tmp  []dot.Dotfile
-		//dot.CopyTemp(tmp)
-
 	},
 }
-
-
-
-
 
 func init() {
 	rootCmd.AddCommand(dotCmd)
 	dotCmd.Flags().StringVarP(&configPath, "path", "p", "", "specyfie the dotfiels target dir can be github url ")
 	dotCmd.AddCommand(revert.RevertCmd)
 	dotCmd.MarkFlagRequired("path")
-	// is called directly, e.g.:
-	// dotCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 }

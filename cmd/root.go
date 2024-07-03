@@ -13,13 +13,23 @@ import (
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
 	Use:   "backy",
-	Short: "A brief description of your application",
-	Long: `A longer description that spans multiple lines and likely contains
-examples and usage of using your application. For example:
+	Short: "Backup, Dotfiles and Tripwire all in one binary",
+	Long: `
+This application combines the functionality of backup management, dotfiles synchronization, and file integrity monitoring into a single versatile binary.
 
-Cobra is a CLI library for Go that empowers applications.
-This application is a tool to generate the needed files
-to quickly create a Cobra application.`,
+1. Backup Management:
+   Easily configure and initiate backups of important files and directories.
+	Customize backup schedules and destinations using a simple configuration file.
+
+2. Dotfiles Synchronization:
+   Streamline the management of your dotfiles across multiple systems.
+	Ensure consistency and synchronization of configurations for applications like shells, editors, and more.
+
+3. File Integrity Monitoring (Tripwire):
+   Monitor changes in critical files and directories using cryptographic hash comparisons.
+	Detect unauthorized modifications and maintain the integrity of your system.
+For more details and usage examples, refer to the documentation or run the application with '--help'.
+`,
 	// Uncomment the following line if your bare application
 	// has an action associated with it:
 	// Run: func(cmd *cobra.Command, args []string) { },

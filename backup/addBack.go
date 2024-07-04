@@ -27,7 +27,7 @@ func addDir(paths *[]string) ([]string, error) {
 }
 
 const (
-	BACK_PATH = "backy_back.sql"
+	BACKUP_DB = "backy_back.sql"
 )
 
 type Brecord struct {
@@ -38,7 +38,7 @@ type Brecord struct {
 
 // https://gorm.io/docs/create.html#Upsert-x2F-On-Conflict
 func addPaths(FDirs []string) error {
-	db, err := utils.InitDb(BACK_PATH, &Brecord{})
+	db, err := utils.InitDb(BACKUP_DB, &Brecord{})
 	if err != nil {
 		return err
 	}

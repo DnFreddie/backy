@@ -4,13 +4,12 @@ import (
 	"fmt"
 	"os"
 	"path"
-	"github.com/DnFreddie/backy/dot"
 	"github.com/DnFreddie/backy/utils"
 )
 
-func deletBackup() error {
+func deletBackup(backupDir string) error {
 
-	confDir, err := utils.Checkdir(dot.BACK_CONF, false)
+	confDir, err := utils.Checkdir(backupDir, false)
 	if err != nil {
 		return err
 	}

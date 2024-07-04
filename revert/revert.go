@@ -4,7 +4,6 @@ import (
 	"bufio"
 	"encoding/csv"
 	"fmt"
-	"github.com/DnFreddie/backy/dot"
 	"github.com/DnFreddie/backy/utils"
 	"io"
 	"log"
@@ -15,8 +14,8 @@ import (
 	"time"
 )
 
-func RevertBackups() error {
-	confDir, err := utils.Checkdir(dot.BACK_CONF, false)
+func revertBackups(backupDir string) error {
+	confDir, err := utils.Checkdir(backupDir, false)
 	if err != nil {
 		return err
 	}
@@ -53,7 +52,7 @@ func RevertBackups() error {
 
 func processReversion(chosenPath string) error {
 
-	csvPath := path.Join(chosenPath, dot.REVERT_CSV)
+	csvPath := path.Join(chosenPath, utils.SCHEMA_CSV)
 	_, err := os.Stat(csvPath)
 
 	if os.IsNotExist(err) {

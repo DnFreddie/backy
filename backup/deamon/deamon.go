@@ -2,14 +2,15 @@ package deamon
 
 import (
 	"fmt"
+	"log"
+
 	"github.com/DnFreddie/backy/backup"
 	"github.com/DnFreddie/backy/utils"
 	"github.com/robfig/cron/v3"
-	"log"
 )
 
 func loopEternally(croneRecord string) {
-	db, err := utils.InitDb(backup.BACK_PATH, backup.Brecord{})
+	db, err := utils.InitDb(backup.BACKUP_DB, backup.Brecord{})
 	if err != nil {
 		log.Fatal("Failed to connect to the db:", err)
 	}
@@ -20,7 +21,6 @@ func loopEternally(croneRecord string) {
 		var records []backup.Brecord
 		var paths []string
 
-		
 		result := db.Find(&records)
 		if result.Error != nil {
 			log.Println("Failed to retrieve records:", result.Error)
@@ -32,8 +32,8 @@ func loopEternally(croneRecord string) {
 
 		}
 		fmt.Println(paths)
-		err:= backup.Back(&paths)
-		if  err != nil{
+		err := backup.Back(&paths)
+		if err != nil {
 			fmt.Println(err)
 			return
 		}

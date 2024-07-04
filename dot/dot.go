@@ -15,7 +15,6 @@ import (
 const (
 	IGNORE     = ".gitignore"
 	BACK_CONF  = "back_conf"
-	REVERT_CSV = "schema.csv"
 )
 var TARGET  string
 
@@ -110,7 +109,7 @@ func createSymlink(dotfiles []Dotfile, source string) error {
 		fmt.Println(err)
 	}
 
-	f, err := os.Create(path.Join(backupDir, REVERT_CSV))
+	f, err := os.Create(path.Join(backupDir, utils.SCHEMA_CSV))
 	defer f.Close()
 	if err != nil {
 		fmt.Println(err)

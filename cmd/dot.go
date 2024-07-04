@@ -8,7 +8,7 @@ import (
 	"os"
 
 	"github.com/DnFreddie/backy/dot"
-	"github.com/DnFreddie/backy/dot/revert"
+	"github.com/DnFreddie/backy/revert"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
@@ -45,5 +45,6 @@ func init() {
 	rootCmd.AddCommand(dotCmd)
 	dotCmd.Flags().StringVarP(&configPath, "path", "p", "", "specyfie the dotfiels target dir can be github url ")
 	dotCmd.AddCommand(revert.RevertCmd)
+
 	dotCmd.MarkFlagRequired("path")
 }

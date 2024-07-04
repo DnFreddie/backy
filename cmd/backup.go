@@ -10,6 +10,7 @@ import (
 	//"github.com/DnFreddie/backy/backup"
 	"github.com/DnFreddie/backy/backup"
 	"github.com/DnFreddie/backy/backup/deamon"
+	"github.com/DnFreddie/backy/revert"
 	"github.com/spf13/cobra"
 )
 
@@ -34,7 +35,7 @@ var backupCmd = &cobra.Command{
 			}
 			if archive {
 				now := time.Now().Format("20060102150405")
-				zipPath:=fmt.Sprintf("%v.zip",now)
+				zipPath := fmt.Sprintf("%v.zip", now)
 				err := backup.ZipDir(args, zipPath)
 				if err != nil {
 
@@ -50,5 +51,6 @@ func init() {
 	backupCmd.Flags().BoolVarP(&backuped, "back", "b", false, "instant backup")
 	backupCmd.Flags().BoolVarP(&archive, "archive", "a", false, "archived the paths")
 	backupCmd.AddCommand(deamon.DeamonCmd)
-	
+	backupCmd.AddCommand(revert.RevertCmd)
+
 }

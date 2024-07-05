@@ -9,9 +9,9 @@ import (
 	"github.com/DnFreddie/backy/utils"
 )
 
-func Back(pathsArr *[]string,backup_path string) error {
+func Back(pathsArr *[]string) error {
 	nowT := time.Now().Format("20060102150405")
-	dirPath := path.Join(backup_path, nowT)
+	dirPath := path.Join(BACKUP_DIR, nowT)
 	dest, err := utils.Checkdir(dirPath, false)
 	if err != nil {
 		return err

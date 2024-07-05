@@ -5,14 +5,16 @@ package dot
 
 import (
 	"fmt"
-	"github.com/DnFreddie/backy/utils"
-	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
 	"io/fs"
 	"log"
 	"os"
 	"path"
 	"strings"
+
+	"github.com/DnFreddie/backy/cmd/revert"
+	"github.com/DnFreddie/backy/utils"
+	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 )
 
 var BACK_CONF string
@@ -55,6 +57,7 @@ var DotCmd = &cobra.Command{
 func init() {
 	DotCmd.Flags().StringVarP(&configPath, "path", "p", "", "specyfie the dotfiels target dir can be github url ")
 	DotCmd.MarkFlagRequired("path")
+	DotCmd.AddCommand(revert.RevertCmd)
 }
 
 func dotCommand(repo string) error {

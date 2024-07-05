@@ -8,12 +8,14 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/DnFreddie/backy/cmd/revert"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
 
 var backuped bool
 var archive bool
+var BACKUP_DIR string
 var BackupCmd = &cobra.Command{
 	Use:   "backup",
 	Short: "Add the patsh that can be later backuped ",
@@ -28,8 +30,8 @@ var BackupCmd = &cobra.Command{
 		} else {
 
 			if backuped {
-				backup_dir:= viper.GetViper().GetString("backup_dir")	
-				Back(&args,backup_dir)
+				BACKUP_DIR= viper.GetViper().GetString("backup_dir")	
+				Back(&args)
 
 			}
 			if archive {
@@ -49,5 +51,6 @@ func init() {
 	BackupCmd.Flags().BoolVarP(&backuped, "back", "b", false, "instant backup")
 	BackupCmd.Flags().BoolVarP(&archive, "archive", "a", false, "archived the paths")
 	BackupCmd.AddCommand(DeamonCmd)
+	BackupCmd.AddCommand(revert.RevertCmd)
 
 }

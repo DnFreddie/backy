@@ -3,4 +3,12 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+    image: backy:latest 
+
+  test :
+    image: backy:latest
+    volumes:
+      - ./:/app
+    command: sh -c " whoami "
+
 

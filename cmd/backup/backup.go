@@ -1,42 +1,41 @@
+package backup
+
 /*
 Copyright © 2024 NAME HERE <EMAIL ADDRESS>
 */
-package cmd
 
 import (
 	"fmt"
 	"time"
 
-	//"github.com/DnFreddie/backy/backup"
-	"github.com/DnFreddie/backy/backup"
-	"github.com/DnFreddie/backy/backup/deamon"
-	"github.com/DnFreddie/backy/revert"
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 )
 
 var backuped bool
 var archive bool
-var backupCmd = &cobra.Command{
+var BackupCmd = &cobra.Command{
 	Use:   "backup",
 	Short: "Add the patsh that can be later backuped ",
 	Long: `
 	Add the paths that can be later backuped
 	`,
 	Run: func(cmd *cobra.Command, args []string) {
-		backup.Add_command(&args)
+		Add_command(&args)
 		if len(args) == 0 {
-
 			cmd.Help()
+
 		} else {
 
 			if backuped {
-				backup.Back(&args)
+				backup_dir:= viper.GetViper().GetString("backup_dir")	
+				Back(&args,backup_dir)
 
 			}
 			if archive {
 				now := time.Now().Format("20060102150405")
 				zipPath := fmt.Sprintf("%v.zip", now)
-				err := backup.ZipDir(args, zipPath)
+				err := ZipDir(args, zipPath)
 				if err != nil {
 
 					fmt.Println(err)
@@ -47,10 +46,8 @@ var backupCmd = &cobra.Command{
 }
 
 func init() {
-	rootCmd.AddCommand(backupCmd)
-	backupCmd.Flags().BoolVarP(&backuped, "back", "b", false, "instant backup")
-	backupCmd.Flags().BoolVarP(&archive, "archive", "a", false, "archived the paths")
-	backupCmd.AddCommand(deamon.DeamonCmd)
-	backupCmd.AddCommand(revert.RevertCmd)
+	BackupCmd.Flags().BoolVarP(&backuped, "back", "b", false, "instant backup")
+	BackupCmd.Flags().BoolVarP(&archive, "archive", "a", false, "archived the paths")
+	BackupCmd.AddCommand(DeamonCmd)
 
 }

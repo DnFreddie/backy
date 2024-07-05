@@ -10,8 +10,10 @@ type Configuration struct {
 		Email string `mapstructure:"email"`
 		Passw string `mapstructure:"passw"`
 	} `mapstructure:"email_creds"`
-	CronTime   string `mapstructure:"cron_time"`
-	ConfigPath string `mapstructure:"config_path"`
+	CronTime    string `mapstructure:"cron_time"`
+	ConfigPath  string `mapstructure:"config_path"`
+	BackupDir   string `mapstructure:"backup_dir"`
+	Bconfig_Dir string `mapstructure:"config_dir"`
 }
 
 func LoadConfig() {
@@ -26,6 +28,8 @@ func LoadConfig() {
 	//Default Values
 	viper.SetDefault("cron_time", "@daily")
 	viper.SetDefault("config_path", ".config")
+	viper.SetDefault("backup_dir", "backups")
+	viper.SetDefault("config_dir", "back_conf")
 
 	err := viper.ReadInConfig()
 	if err := viper.ReadInConfig(); err != nil {

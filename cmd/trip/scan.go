@@ -1,34 +1,65 @@
-package scan
+/*
+Copyright © 2024 NAME HERE <EMAIL ADDRESS>
+*/
+package trip
 
 import (
 	"errors"
 	"fmt"
-	"log/slog"
-	"sync"
-
-	"github.com/DnFreddie/backy/trip"
 	"github.com/DnFreddie/backy/utils"
+	"github.com/spf13/cobra"
+	"log/slog"
+	"os"
+	"sync"
 )
 
-func TripScan(csvPath string) error {
+var scanCmd = &cobra.Command{
+	Use:   "scan",
+	Short: "Scanning the directory and checking the difference in the hash of the files",
+	Long: `
+
+Tripwire main functionality:
+It scans the specified directory to detect any changes in the files' content.
+The tool then outputs the current state in CSV format.
+
+`,
+	Run: func(cmd *cobra.Command, args []string) {
+
+		err := tripScan(csvName)
+
+		if err != nil {
+			fmt.Println(err)
+			os.Exit(1)
+		}
+
+	},
+}
+
+var csvName string
+
+func init() {
+	scanCmd.Flags().StringVarP(&csvName, "csv", "c", "", "wirte to a given csv path")
+}
+
+func tripScan(csvPath string) error {
 	done := make(chan bool)
-	utils.WaitingScreen(done,"Scaning")
+	utils.WaitingScreen(done, "Scaning")
 	confP, err := utils.Checkdir("scan_paths.json", true)
 	if err != nil {
 		return err
 	}
 
-	var ConfPaths []trip.ConfigPath
+	var ConfPaths []ConfigPath
 	err = utils.ReadJson(confP, &ConfPaths)
 	if err != nil {
 		return err
 	}
 
 	if len(ConfPaths) == 0 {
-		return errors.New("There are no paths in the config. First, add them with TripAdd")
+		return errors.New("There are no paths in the config. First, add them with dd")
 	}
 
-	db, err := utils.InitDb(trip.DB_PATH,nil)
+	db, err := utils.InitDb(DB_PATH, nil)
 	if err != nil {
 		return err
 	}
@@ -43,7 +74,7 @@ func TripScan(csvPath string) error {
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
-		trip.ScanRecursivly(fPath, db, ch)
+		ScanRecursivly(fPath, db, ch)
 		close(ch)
 	}()
 
@@ -67,7 +98,7 @@ func TripScan(csvPath string) error {
 	if len(checkedArray) == 0 {
 		slog.Info("Everything is fine with this dir")
 	} else {
-		var csvName = "trip_scan.csv"
+		var csvName = "scan.csv"
 
 		if csvPath != "" {
 			csvName = csvPath
@@ -81,7 +112,6 @@ func TripScan(csvPath string) error {
 		done <- true
 		fmt.Println("\nThe comparison scan is done, look in ", csvName)
 	}
-
 
 	return nil
 }

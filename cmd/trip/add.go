@@ -1,21 +1,57 @@
-package add
+package trip
 
 import (
 	"fmt"
+	"os"
 	"sync"
-
-	"github.com/DnFreddie/backy/trip"
+	"github.com/spf13/cobra"
 	"github.com/DnFreddie/backy/utils"
 	"gorm.io/gorm"
 )
 
-func TripAdd(fPath string) error {
-	db, err := utils.InitDb(trip.DB_PATH,&utils.FileProps{})
+// addCmd represents the add command
+var addCmd = &cobra.Command{
+	Use:   "add",
+	Short: "Indexes the directory and adds it to the existing index group for future scanning",
+	Long: `
+	If there's no path specified for scanning, it adds the directory to the pool.
+	It then checks each file, computes checksums, and stores them in the database for comparison during subsequent scans.
+`,
+
+	Run: func(cmd *cobra.Command, args []string) {
+		if addPath != "" {
+			_, err := os.Stat(addPath)
+			if err != nil {
+				fmt.Println("the driectry doesn't exist")
+				os.Exit(1)
+
+			}
+			tripAdd(addPath)
+		}
+
+	},
+}
+
+var (
+	addPath string
+)
+
+func init() {
+	addCmd.Flags().StringVarP(&addPath, "path", "p", "", "the path to add to the scan")
+	addCmd.MarkFlagRequired("path")
+
+}
+
+
+
+
+func tripAdd(fPath string) error {
+	db, err := utils.InitDb(DB_PATH, &utils.FileProps{})
 	if err != nil {
 		return err
 	}
 
-	isNew, err := trip.CreateConfig(fPath)
+	isNew, err := CreateConfig(fPath)
 	if err != nil {
 		return err
 	}
@@ -32,7 +68,7 @@ func TripAdd(fPath string) error {
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
-		trip.ScanRecursivly(fPath, db, ch)
+		ScanRecursivly(fPath, db, ch)
 		close(ch)
 	}()
 

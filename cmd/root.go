@@ -6,7 +6,10 @@ package cmd
 import (
 	"os"
 
-	"github.com/DnFreddie/backy/config"
+	"github.com/DnFreddie/backy/cmd/backup"
+	"github.com/DnFreddie/backy/cmd/config"
+	"github.com/DnFreddie/backy/cmd/dot"
+	"github.com/DnFreddie/backy/cmd/trip"
 	"github.com/spf13/cobra"
 )
 
@@ -44,9 +47,16 @@ func Execute() {
 	}
 }
 
+func addSubcommandsPallet(){
+	rootCmd.AddCommand(backup.BackupCmd)
+	rootCmd.AddCommand(dot.DotCmd)
+	rootCmd.AddCommand(trip.TripCmd)
+}
+
 func init() {
 	cobra.OnInitialize(config.LoadConfig)
-
+	
+	addSubcommandsPallet()
 	rootCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 
 }

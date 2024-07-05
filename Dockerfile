@@ -1,18 +1,21 @@
-FROM golang:1.22
-WORKDIR /scripts
+# Use an appropriate Go version tag
+FROM golang:1.22.2-alpine
+ENV USER=test
+RUN set -eux; \
+    apk update && \
+    apk add --no-cache git
 
-COPY script.sh .
-RUN chmod +x /scripts/script.sh
-RUN /scripts/script.sh
+RUN adduser -D -h /home/${USER} ${USER}
+
+
+
+COPY . /app
 
 WORKDIR /app
-COPY go.mod go.sum ./
-RUN go mod download
-
-COPY . ./
-
-RUN go build -o main .
 
 
-CMD sh -c './main dot && ls -a /root/.config && ls -a /tmp/test_data'
+RUN go mod tidy
+
+USER ${USER}
+
 

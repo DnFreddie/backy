@@ -7,15 +7,13 @@ import (
 	"strings"
 )
 
-// Without bash -c it won't work on nixos
-func isCommandAvailable(name string) bool {
-
-	cmd := exec.Command("bash", "-c", "command -v "+name)
-	if err := cmd.Run(); err != nil {
-		return false
-	}
-	return true
+type Dotfile struct {
+	Location fs.DirEntry
+	IsEx     bool
+	Symlink  string
+	BaseP    string
 }
+// Without bash -c it won't work on nixos
 
 func Isexe(dirs []fs.DirEntry) []Dotfile {
 	var list []Dotfile
@@ -35,4 +33,13 @@ func Isexe(dirs []fs.DirEntry) []Dotfile {
 
 	return list
 
+}
+
+func isCommandAvailable(name string) bool {
+
+	cmd := exec.Command("bash", "-c", "command -v "+name)
+	if err := cmd.Run(); err != nil {
+		return false
+	}
+	return true
 }

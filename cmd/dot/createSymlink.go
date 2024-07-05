@@ -4,62 +4,10 @@ import (
 	"encoding/csv"
 	"fmt"
 	"github.com/DnFreddie/backy/utils"
-	"io/fs"
-	"log"
 	"os"
 	"path"
-	"strings"
 	"time"
 )
-
-const (
-	IGNORE     = ".gitignore"
-	BACK_CONF  = "back_conf"
-)
-var TARGET  string
-
-func DotCommand(repo string) error {
-	var URL bool
-	var dest string
-
-	if strings.Contains(repo, "git@") {
-		URL = true
-	} else {
-		URL = isUrl(repo)
-
-	}
-	if URL {
-		clonedDest, err := gitClone(repo)
-		if err != nil {
-			log.Fatal("Failed to copy url")
-		}
-		dest = clonedDest
-	} else {
-		dest = repo
-	}
-
-	absDest, err := utils.MakeAbsoulute(dest)
-
-	if err != nil {
-		log.Fatalf("%v doesn't exist\n", path.Base(dest))
-	}
-
-	dirPaths, err := GetPaths(absDest)
-	if err != nil {
-		fmt.Println(err)
-		return err
-	}
-
-	dirStructs := Isexe(dirPaths)
-
-	err = createSymlink(dirStructs, absDest)
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
 func createTempBack(source string, backupDir string, csvF *csv.Writer, sourceAbs string, newDest string) (bool, error) {
 
 	_, err := os.Stat(source)
@@ -158,24 +106,4 @@ func createSymlink(dotfiles []Dotfile, source string) error {
 
 }
 
-func GetPaths(gitPath string) ([]fs.DirEntry, error) {
-	dirs, err := os.ReadDir(gitPath)
-	if err != nil {
-		fmt.Println("Can't list this dir probably permissions issue ", err)
-		return nil, err
-	}
 
-	toIgnore, err := readIgnore()
-	if err != nil {
-		fmt.Println("Can't read git ignore: ", err)
-		return nil, err
-	}
-
-	var paths []fs.DirEntry
-	for _, dir := range dirs {
-		if !shouldIgnore(dir.Name(), toIgnore) {
-			paths = append(paths, dir)
-		}
-	}
-	return paths, nil
-}

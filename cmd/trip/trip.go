@@ -1,13 +1,11 @@
 /*
 Copyright © 2024 NAME HERE <EMAIL ADDRESS>
 */
-package cmd
+package trip
 
 import (
 	"fmt"
 
-	"github.com/DnFreddie/backy/trip/add"
-	"github.com/DnFreddie/backy/trip/scan"
 	"github.com/spf13/cobra"
 )
 
@@ -26,7 +24,6 @@ var TripCmd = &cobra.Command{
 }
 
 func init() {
-	rootCmd.AddCommand(TripCmd)
-	TripCmd.AddCommand(scan.ScanCmd)
-	TripCmd.AddCommand(add.AddCmd)
+	TripCmd.AddCommand(scanCmd)
+	TripCmd.AddCommand(addCmd)
 }

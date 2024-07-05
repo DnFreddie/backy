@@ -9,6 +9,26 @@ import (
 	"gorm.io/gorm/clause"
 )
 
+
+
+func Add_command(args *[]string) error {
+	paths, err := addDir(args)
+
+	if err != nil {
+		return err
+	}
+	if len(paths)==0{
+		fmt.Println("Skipping... Nothing to add ")
+		return nil
+	}
+	err = addPaths(paths)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func addDir(paths *[]string) ([]string, error) {
 	var newPaths []string
 

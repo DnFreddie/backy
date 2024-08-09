@@ -3,6 +3,8 @@ package trip
 import (
 	"fmt"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
 const (
@@ -27,11 +29,9 @@ func TestAddPath(t *testing.T) {
 
 			//err:= TripMain(TEST_PATH)
 			xd, err := CreateConfig("ahshhahsahahshhashashhashh")
-			fmt.Println(xd)
 
-			if err != nil {
-				return
-			}
+			fmt.Println(xd)
+			assert.NoError(t, err)
 		})
 
 	}

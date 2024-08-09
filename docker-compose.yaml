@@ -5,10 +5,10 @@ services:
       dockerfile: Dockerfile
     image: backy:latest 
 
-  test :
+  test:
     image: backy:latest
     volumes:
       - ./:/app
-    command: sh -c " whoami "
-
+    working_dir: /app  
+    command: go test ./...
 

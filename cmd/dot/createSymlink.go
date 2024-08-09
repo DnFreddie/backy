@@ -8,39 +8,6 @@ import (
 	"path"
 	"time"
 )
-func createTempBack(source string, backupDir string, csvF *csv.Writer, sourceAbs string, newDest string) (bool, error) {
-
-	_, err := os.Stat(source)
-
-	if os.IsNotExist(err) {
-		return false, nil
-	}
-
-	dest := path.Join(backupDir, path.Base(source))
-	fmt.Println("Already exist", path.Base(dest))
-	err = os.Rename(source, dest)
-
-	if err != nil {
-		return false, err
-	}
-	data := [][]string{
-		{source, dest},
-	}
-	err = csvF.WriteAll(data)
-
-	if err != nil {
-		fmt.Println(err)
-		return false, nil
-	}
-
-	err = os.Symlink(sourceAbs, newDest)
-	if err != nil {
-		fmt.Println(err)
-		return false, nil
-	}
-	return true, nil
-
-}
 
 func createSymlink(dotfiles []Dotfile, source string) error {
 
@@ -107,3 +74,36 @@ func createSymlink(dotfiles []Dotfile, source string) error {
 }
 
 
+func createTempBack(source string, backupDir string, csvF *csv.Writer, sourceAbs string, newDest string) (bool, error) {
+
+	_, err := os.Stat(source)
+
+	if os.IsNotExist(err) {
+		return false, nil
+	}
+
+	dest := path.Join(backupDir, path.Base(source))
+	fmt.Println("Already exist", path.Base(dest))
+	err = os.Rename(source, dest)
+
+	if err != nil {
+		return false, err
+	}
+	data := [][]string{
+		{source, dest},
+	}
+	err = csvF.WriteAll(data)
+
+	if err != nil {
+		fmt.Println(err)
+		return false, nil
+	}
+
+	err = os.Symlink(sourceAbs, newDest)
+	if err != nil {
+		fmt.Println(err)
+		return false, nil
+	}
+	return true, nil
+
+}

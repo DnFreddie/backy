@@ -9,8 +9,6 @@ import (
 	"log"
 	"os"
 	"path"
-	"strings"
-
 	"github.com/DnFreddie/backy/cmd/revert"
 	"github.com/DnFreddie/backy/utils"
 	"github.com/spf13/cobra"
@@ -20,8 +18,9 @@ import (
 var BACK_CONF string
 var TARGET string
 var configPath string
+
 const (
-	IGNORE    = ".gitignore"
+	IGNORE = ".gitignore"
 )
 
 var DotCmd = &cobra.Command{
@@ -63,13 +62,7 @@ func init() {
 func dotCommand(repo string) error {
 	var URL bool
 	var dest string
-
-	if strings.Contains(repo, "git@") {
-		URL = true
-	} else {
-		URL = isUrl(repo)
-
-	}
+	URL = isUrl(repo)
 	if URL {
 		clonedDest, err := gitClone(repo)
 		if err != nil {
@@ -86,15 +79,17 @@ func dotCommand(repo string) error {
 		log.Fatalf("%v doesn't exist\n", path.Base(dest))
 	}
 
-	dirPaths, err := getPaths(absDest)
+	dotStructs, err := getPaths(absDest)
 	if err != nil {
 		fmt.Println(err)
 		return err
 	}
 
-	dirStructs := Isexe(dirPaths)
 
-	err = createSymlink(dirStructs, absDest)
+	for _, dot := range dotStructs { dot.IsExe() }
+
+
+	err = createSymlink(dotStructs, absDest)
 	if err != nil {
 		return err
 	}
@@ -102,11 +97,23 @@ func dotCommand(repo string) error {
 	return nil
 }
 
-func getPaths(gitPath string) ([]fs.DirEntry, error) {
+func getPaths(gitPath string) ([]Dotfile, error) {
 	dirs, err := os.ReadDir(gitPath)
 	if err != nil {
 		fmt.Println("Can't list this dir probably permissions issue ", err)
 		return nil, err
+
+	}
+	var dotfiels []Dotfile
+
+	for _, d := range dirs {
+
+		dot := Dotfile{
+			Location: d,
+			Repo:     "test",
+		}
+		dotfiels = append(dotfiels, dot)
+
 	}
 
 	toIgnore, err := readIgnore()
@@ -121,5 +128,6 @@ func getPaths(gitPath string) ([]fs.DirEntry, error) {
 			paths = append(paths, dir)
 		}
 	}
-	return paths, nil
+	
+	return dotfiels, nil
 }

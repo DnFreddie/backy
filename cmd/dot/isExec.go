@@ -12,33 +12,20 @@ type Dotfile struct {
 	IsEx     bool
 	Symlink  string
 	BaseP    string
-}
-// Without bash -c it won't work on nixos
-
-func Isexe(dirs []fs.DirEntry) []Dotfile {
-	var list []Dotfile
-	for _, d := range dirs {
-		re := regexp.MustCompile(`(rc|\.conf)$`)
-		cleanPath := re.ReplaceAllString(strings.TrimPrefix(d.Name(), "."), "")
-
-		dotfile := Dotfile{
-			Location: d,
-
-			IsEx: isCommandAvailable(cleanPath),
-		}
-
-		list = append(list, dotfile)
-
-	}
-
-	return list
-
+	Repo     string
+	ignored  bool
 }
 
-func isCommandAvailable(name string) bool {
+func (d *Dotfile) IsExe() {
+	re := regexp.MustCompile(`\.?(conf|rc)$`) 
+	cleanPath := re.ReplaceAllString(d.Location.Name(), "") 
+	d.IsEx = isCmd(strings.TrimPrefix(cleanPath,"."))
+}
 
-	cmd := exec.Command("bash", "-c", "command -v "+name)
-	if err := cmd.Run(); err != nil {
+func isCmd(cmd string) bool {
+	_, err := exec.LookPath(cmd)
+	if err != nil {
+
 		return false
 	}
 	return true

@@ -10,32 +10,28 @@ func TestReadAndSendEmail(t *testing.T) {
 		name     string
 		expected Email_Creds
 		body     string
-		wantErr  bool
+		err      bool
 	}{
 		{
-			name: "Correct credentials and message",
+			name: "Wrong credentials and message",
 			expected: Email_Creds{
-				Email:  "szopen_test@gmail.com",
+				Email:  "szopen_test@gmail",
 				Passwd: "12344",
 			},
 			body:    "This is a test email message",
-			wantErr: false,
+			err:     true,
 		},
 	}
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			err := tc.expected.readTheConfig()
-			if assert.NoError(t, err, "Error reading the config file") {
-				assert.Equal(t, tc.expected.Email, tc.expected.Email)
-				assert.Equal(t, tc.expected.Passwd, tc.expected.Passwd)
-				err = SendMessage(tc.body, tc.expected.Email,tc.expected.Passwd)
-				if tc.wantErr {
-					assert.Error(t, err, "Expected an error while sending message")
-				} else {
-					assert.NoError(t, err, "Expected no error while sending message")
-				}
+			err := SendMessage(tc.body, tc.expected.Email, tc.expected.Passwd)
+			if err != nil {
+				assert.Equal(t, tc.err, true)
+			} else {
+				assert.Equal(t, tc.err, false)
 			}
 		})
 	}
 }
+

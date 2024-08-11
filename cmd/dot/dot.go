@@ -5,14 +5,12 @@ package dot
 
 import (
 	"fmt"
-	"io/fs"
-	"log"
-	"os"
-	"path"
 	"github.com/DnFreddie/backy/cmd/revert"
 	"github.com/DnFreddie/backy/utils"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
+	"os"
+	"path"
 )
 
 var BACK_CONF string
@@ -49,7 +47,7 @@ var DotCmd = &cobra.Command{
 			fmt.Println(err)
 			os.Exit(1)
 		}
-		fmt.Println("Ure dots has been imported checkout them :)")
+		fmt.Println("\nUre dots has been imported checkout them :)")
 	},
 }
 
@@ -59,45 +57,43 @@ func init() {
 	DotCmd.AddCommand(revert.RevertCmd)
 }
 
-func dotCommand(repo string) error {
-	var URL bool
+func dotCommand(local string) error {
 	var dest string
-	URL = isUrl(repo)
-	if URL {
-		clonedDest, err := gitClone(repo)
-		if err != nil {
-			log.Fatal("Failed to copy url")
+	dest = local
+	isURL := isUrl(local)
+
+	r := &Repo{}
+	if isURL {
+		err := r.Clone(local)
+		if err != nil{
+			fmt.Errorf("Failed to clone repo ",r.RepoName)
 		}
-		dest = clonedDest
-	} else {
-		dest = repo
-	}
+		dest = r.AbsP
+	} 
 
-	absDest, err := utils.MakeAbsoulute(dest)
-
+	absDest, err := utils.MakeAbsolute(dest)
 	if err != nil {
-		log.Fatalf("%v doesn't exist\n", path.Base(dest))
+		return fmt.Errorf("%v doesn't exist: %w", path.Base(dest), err)
 	}
 
 	dotStructs, err := getPaths(absDest)
 	if err != nil {
-		fmt.Println(err)
-		return err
+		return fmt.Errorf("error getting paths: %w", err)
 	}
 
+	for _, dot := range *dotStructs {
+		dot.IsExe()
+	}
 
-	for _, dot := range dotStructs { dot.IsExe() }
-
-
-	err = createSymlink(dotStructs, absDest)
-	if err != nil {
-		return err
+	if err := createSymlink(*dotStructs, absDest); err != nil {
+		return fmt.Errorf("error creating symlink: %w", err)
 	}
 
 	return nil
 }
 
-func getPaths(gitPath string) ([]Dotfile, error) {
+func getPaths(gitPath string) (*[]Dotfile, error) {
+
 	dirs, err := os.ReadDir(gitPath)
 	if err != nil {
 		fmt.Println("Can't list this dir probably permissions issue ", err)
@@ -110,24 +106,17 @@ func getPaths(gitPath string) ([]Dotfile, error) {
 
 		dot := Dotfile{
 			Location: d,
-			Repo:     "test",
+			AbPath: path.Join(gitPath,d.Name()),
+
 		}
 		dotfiels = append(dotfiels, dot)
 
 	}
 
-	toIgnore, err := readIgnore()
-	if err != nil {
-		fmt.Println("Can't read git ignore: ", err)
-		return nil, err
+	toIgnore := readIgnore()
+	for _, dot := range dotfiels {
+		dot.ignore(&toIgnore)
 	}
 
-	var paths []fs.DirEntry
-	for _, dir := range dirs {
-		if !shouldIgnore(dir.Name(), toIgnore) {
-			paths = append(paths, dir)
-		}
-	}
-	
-	return dotfiels, nil
+	return &dotfiels, nil
 }

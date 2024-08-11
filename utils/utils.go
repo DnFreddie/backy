@@ -106,12 +106,12 @@ func ReadJson[T any](jsonPath string, records *[]T) error {
 
 	return nil
 }
-func MakeAbsoulute(fPath string) (string, error) {
+func MakeAbsolute(fPath string) (string, error) {
 	var dest string
 	if !filepath.IsAbs(fPath) {
 		pwd, err := os.Getwd()
 		if err != nil {
-			log.Fatal("Therse smth wrong with this directroy check perrmisons ")
+			log.Fatal("Can't get the current working directory",err)
 		}
 		dest = filepath.Join(pwd, fPath)
 

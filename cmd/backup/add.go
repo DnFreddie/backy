@@ -33,7 +33,7 @@ func addDir(paths *[]string) ([]string, error) {
 	var newPaths []string
 
 	for _, p := range *paths {
-		new_path, err := utils.MakeAbsoulute(p)
+		new_path, err := utils.MakeAbsolute(p)
 		if err != nil {
 			fmt.Println(p, "Doesn't exist")
 

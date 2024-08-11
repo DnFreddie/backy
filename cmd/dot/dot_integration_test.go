@@ -21,7 +21,7 @@ func TestDownloadGit(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			err := downloadGit(tc.zipUrl, tc.repPath)
+			_, err := downloadRepo(tc.zipUrl, tc.repPath)
 
 			if (err != nil) != tc.expected {
 				if tc.expected {

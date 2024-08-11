@@ -9,3 +9,4 @@ vite.config.ts.timestamp-*
 /dotfiles_test
 test.csv
 test_file.json 
+.env

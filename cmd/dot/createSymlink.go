@@ -12,6 +12,15 @@ import (
 	"gorm.io/gorm"
 )
 
+const (
+	Reset  = "\033[0m"
+	Red    = "\033[31m"
+	Green  = "\033[32m"
+	Blue   = "\033[34m"
+	Cyan   = "\033[36m"
+	Yellow = "\033[33m"
+)
+
 func (r *Repo) createBackup() {
 	nowT := time.Now().Format("20060102150405")
 	backupDir := path.Join(BACK_CONF, nowT)
@@ -24,7 +33,7 @@ func (r *Repo) createBackup() {
 
 }
 
-func (r *Repo) createDbRaport() {
+func (r *Repo) saveRepoSchema() {
 	if r.BackupLocation == "" {
 		log.Fatal("Can't find the backup location")
 	}
@@ -76,11 +85,28 @@ func (r *Repo) createDbRaport() {
 	}
 }
 
-func (r *Repo) createCsrRaport() {
-	if r.BackupLocation == "" {
-		log.Fatal("Can't find the backup location")
+func (r *Repo) PrintRaport() {
+
+	if len(*r.Dots) == 0 {
+		fmt.Println(Cyan + "No dotfiles to raport " + Reset)
+		return
+	}
+
+	fmt.Println(Cyan + "Generating report..." + Reset)
+	var fCounter int
+	for _, i := range *r.Dots {
+		if i.Failed != nil {
+			fmt.Println(Red + "Error Report:" + Reset)
+			fmt.Printf("Name: %s\n", Green+i.Location+Reset)
+			fmt.Printf("Failure: %s\n\n", Red+fmt.Sprintf("%v", *i.Failed)+Reset)
+			fCounter++
+		}
 
 	}
+	success := len(*r.Dots) - fCounter
+	fmt.Printf("Repo: %s\n", Blue+fmt.Sprintf("%v", r.RepoName)+Reset)
+	fmt.Printf(Green+"Succeed: %d\n" +Reset,success)
+	fmt.Printf(Red+"Failed: %s\n\n", fmt.Sprintf("%v", fCounter)+Reset)
 }
 
 func (r *Repo) Link() {

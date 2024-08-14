@@ -12,7 +12,7 @@ type Dotfile struct {
 	Location   string   `json:"location"`
 	Executable bool     `json:"executable"`
 	Symlink    string   `json:"symlink"`
-	AbPath     string   `json:"ab_path"`
+	Absolute     string   `json:"ab_path"`
 	Repo       *Repo    `gorm:"-" json:"-"` 
 	RepoID     *string  `json:"-"`        
 	Ignored    bool     `json:"ignored"`

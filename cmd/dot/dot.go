@@ -61,7 +61,7 @@ func init() {
 
 func dotCommand(repoPath string) error {
 	isURL := isUrl(repoPath)
-	    id := uuid.New()
+	id := uuid.New()
 	r := &Repo{RepoId: fmt.Sprintln(id)}
 	if isURL {
 		err := r.Clone(repoPath)
@@ -78,12 +78,13 @@ func dotCommand(repoPath string) error {
 
 	}
 	err := r.getDots()
-	 if err != nil {
-		 	return fmt.Errorf("error getting paths: %w", err)
-		 }
+	if err != nil {
+		return fmt.Errorf("error getting paths: %w", err)
+	}
 	r.createBackup()
-	r.createDbRaport()
-	fmt.Println(r)
+	//r.Link()
+	r.saveRepoSchema()
+	r.PrintRaport()
 	return nil
 }
 

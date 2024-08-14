@@ -239,7 +239,7 @@ func (r *Repo) getDots() ( error) {
 
 		dot := Dotfile{
 			Location: d.Name(),
-			AbPath:   path.Join(r.Absolute, d.Name()),
+			Absolute:   path.Join(r.Absolute, d.Name()),
 			Repo:     r,
 			RepoID: &r.RepoId,
 		}

@@ -1,13 +1,12 @@
 package dot
 
 import (
+	"bufio"
 	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
-	"net/url"
 	"os"
-	"os/exec"
 	"path"
 	"path/filepath"
 	"regexp"
@@ -16,37 +15,21 @@ import (
 	"github.com/DnFreddie/backy/utils"
 )
 
-func gitClone(url string) (string, error) {
+type Repo struct {
+	ID             uint       `gorm:"primaryKey;autoIncrement"`
+	DefaultBranch string `json:"default_branch"`
+	Url           string
+	zipUrl        string
+	RepoName      string `json:"name"`
+	Absolute      string
+	GitIgnore     []string `gorm:"-"`
+	BackupLocation  string 
+	Dots *[]Dotfile `gorm:"-"`
+	RepoId  string  `gorm:"foreignKey:RepoID"`
 
-	done := make(chan bool)
+} 
 
-	utils.WaitingScreen(done, "Cloning")
-	cmd := exec.Command("bash", "-c", "git clone "+url)
-	if err := cmd.Run(); err != nil {
-		return "", err
-	}
-	re := regexp.MustCompile(`[^/]+$`)
-
-	match := re.FindString(url)
-
-	pwd, err := os.Getwd()
-
-	if err != nil {
-		return "", err
-	}
-
-	if strings.HasSuffix(match, ".git") {
-		match = strings.TrimSuffix(match, ".git")
-	}
-	pathToRepo := path.Join(pwd, match)
-
-	done <- true
-
-	return pathToRepo, nil
-
-}
-
-func (r *Repo) Clone(url string) error{
+func (r *Repo) Clone(url string) error {
 	done := make(chan bool)
 
 	utils.WaitingScreen(done, "Cloning")
@@ -69,28 +52,19 @@ func (r *Repo) Clone(url string) error{
 		return fmt.Errorf("failed to unzip %s: %w", r.RepoName, err)
 	}
 
-defer func() {
-    os.Remove(zipFile)
-    done <- true
-}()
+	defer func() {
+		os.Remove(zipFile)
+		done <- true
+	}()
 
+	r.Absolute, err = utils.MakeAbsolute(repoPath)
+	if err != nil {
 
-	 r.AbsP,err = utils.MakeAbsolute(repoPath)
-	
-if err != nil {
+		fmt.Println("errr",  err)
+		return err
 
-	return fmt.Errorf("%v doesn't exist: %w", repoPath, err)
-
-}
+	}
 	return nil
-}
-
-type Repo struct {
-	DefaultBranch string `json:"default_branch"`
-	Url           string
-	zipUrl        string
-	RepoName      string `json:"name"`
-	AbsP          string
 }
 
 func (r *Repo) getHeadUrl(url string) error {
@@ -132,6 +106,7 @@ func (r *Repo) getHeadUrl(url string) error {
 
 		zipURL := fmt.Sprintf("https://github.com/%s/archive/refs/heads/%s.zip", repoPath, r.DefaultBranch)
 		r.zipUrl = zipURL
+		r.Url = url
 		return nil
 	} else {
 		fmt.Println("No match found in the URL")
@@ -141,53 +116,59 @@ func (r *Repo) getHeadUrl(url string) error {
 
 // Downloads the file named archive .zip
 func (r *Repo) downloadRepo() error {
-
 	client := &http.Client{}
 	res, err := client.Get(r.zipUrl)
 	if err != nil {
-		fmt.Println("Error making GET request:", err)
-		return err
+		return fmt.Errorf("error making GET request: %w", err)
 	}
 	defer res.Body.Close()
 
 	if res.StatusCode != http.StatusOK {
-		fmt.Printf("Error: received status code %d\n", res.StatusCode)
-		return fmt.Errorf("received status code %d", res.StatusCode)
+		return fmt.Errorf("error: received status code %d", res.StatusCode)
 	}
 
 	file, err := os.Create(r.RepoName + ".zip")
+
 	if err != nil {
-		fmt.Println("Error creating file:", err)
-		return err
+		return fmt.Errorf("error creating file: %w", err)
 	}
-	defer file.Close()
-	_, err = io.Copy(file, res.Body)
 
+	defer func() {
+		if cerr := file.Close(); cerr != nil {
+			err = fmt.Errorf("error closing file: %w", cerr)
+		}
+	}()
+
+	_, err = io.Copy(file, res.Body)
 	if err != nil {
 
-		return utils.HandleFileErr("copying data to file", err, file)
-
+		if cleanupErr := utils.HandleFileErr("copying data to file", err, file); cleanupErr != nil {
+			return fmt.Errorf("error during cleanup: %w", cleanupErr)
+		}
+		return err 
 	}
 
 	return nil
 }
 
-func readIgnore() []string {
+
+func (r *Repo) readIgnore() {
 	var ignored []string
 
 	ignored = append(ignored, IGNORE)
 	ignored = append(ignored, ".git")
-
-	_, err := os.Stat(IGNORE)
+	gitIgnore := filepath.Join(r.Absolute, IGNORE)
+	_, err := os.Stat(gitIgnore)
 	if os.IsNotExist(err) {
-		fmt.Println("No git ignore")
-		return ignored
+		fmt.Println("No git ignore found")
+		r.GitIgnore = ignored
+		return
 	}
 
-	c, err := os.ReadFile(IGNORE)
+	c, err := os.ReadFile(gitIgnore)
 	if err != nil {
-		fmt.Println("Can't read the file", err)
-		return ignored
+		fmt.Println("Can't read git ignore skipping")
+		r.GitIgnore = ignored
 	}
 
 	sc := string(c)
@@ -195,39 +176,83 @@ func readIgnore() []string {
 
 	for _, line := range lines {
 		trimmedLine := strings.TrimSpace(line)
+		
 		if trimmedLine != "" {
 			ignored = append(ignored, trimmedLine)
 		}
 	}
+	r.GitIgnore = ignored
 
-	return ignored
 }
-func (d *Dotfile) ignore(toIgnore *[]string) {
-	d.ignored = false
 
-	for _, pattern := range *toIgnore {
-		if match, _ := filepath.Match(pattern, d.Location.Name()); match {
-			d.ignored = true
-			break
+func (r *Repo) GetInfo(localPath string) error {
+	absouluteP, err := utils.MakeAbsolute(localPath)
+	if err != nil {
+		return fmt.Errorf("%v doesn't exist: %w", path.Base(localPath), err)
+	}
+	r.Absolute = absouluteP
+	HEAD := filepath.Join(r.Absolute, "HEAD")
+	CONFIG := filepath.Join(r.Absolute, "config")
+	reBranch := regexp.MustCompile(`refs/heads/(\w+)`)
+	reUrl := regexp.MustCompile(`url = (.+.git$)`)
+
+	r.DefaultBranch,err = extractMatch(HEAD, reBranch)
+	r.Url,err  = extractMatch(CONFIG, reUrl)
+
+	if err != nil {
+		fmt.Println(err)
+		return nil
+
+	}
+	return nil
+}
+func extractMatch(filePath string, re *regexp.Regexp) (string,error) {
+	file, err := os.OpenFile(filePath, os.O_RDONLY, 0)
+	defer file.Close()
+	if err != nil {
+		
+	return "",fmt.Errorf("Faield to read the %s", path.Base(filePath))	
+	}
+	buffReader := bufio.NewScanner(file)
+	for buffReader.Scan() {
+		line := buffReader.Text()
+		matches := re.FindStringSubmatch(line)
+		if matches != nil {
+			captureGroup := matches[1]
+			return captureGroup,nil
 		}
+		continue
+
 	}
+	return "",err
 }
+func (r *Repo) getDots() ( error) {
 
-func shouldIgnore(fileName string, toIgnore []string) bool {
-	for _, pattern := range toIgnore {
-		if match, _ := filepath.Match(pattern, fileName); match {
-			return true
+	dirs, err := os.ReadDir(r.Absolute)
+	if err != nil {
+		fmt.Println("Can't list this dir probably permissions issue ", err)
+		return  err
 
+	}
+	var dotfiels []Dotfile
+
+	for _, d := range dirs {
+
+		dot := Dotfile{
+			Location: d.Name(),
+			AbPath:   path.Join(r.Absolute, d.Name()),
+			Repo:     r,
+			RepoID: r.RepoId,
 		}
-	}
-	return false
-}
+		dotfiels = append(dotfiels, dot)
 
-func isUrl(str string) bool {
-
-	if strings.Contains(str, "git@") {
-		return true
 	}
-	u, err := url.Parse(str)
-	return err == nil && u.Scheme != "" && u.Host != ""
+
+	r.readIgnore()
+	for _, dot := range dotfiels {
+		dot.ignore(&r.GitIgnore)
+	}
+r.Dots = &dotfiels
+
+	return  nil
 }

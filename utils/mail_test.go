@@ -1,20 +1,24 @@
 package utils
-
 import (
 	"github.com/stretchr/testify/assert"
 	"testing"
 )
 
+
+type email_creds_test struct{
+Email string
+Passwd string
+}
 func TestReadAndSendEmail(t *testing.T) {
 	testCases := []struct {
 		name     string
-		expected Email_Creds
+		expected   email_creds_test
 		body     string
 		err      bool
 	}{
 		{
 			name: "Wrong credentials and message",
-			expected: Email_Creds{
+			expected: email_creds_test{
 				Email:  "szopen_test@gmail",
 				Passwd: "12344",
 			},

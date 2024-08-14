@@ -1,27 +1,30 @@
 package dot
 
 import (
-	"io/fs"
 	"os/exec"
+	"path/filepath"
 	"regexp"
 	"strings"
 )
 
-
-
 type Dotfile struct {
-	Location fs.DirEntry
-	IsEx     bool
-	Symlink  string
-	AbPath   string
-	Repo     *Repo
-	ignored  bool
-}
+	ID         uint     `gorm:"primaryKey;autoIncrement"`
+	Location   string
+	Executable bool
+	Symlink    string
+	AbPath     string
+	Repo       *Repo  `gorm:"-"`
+	RepoID     string  
+	Ignored    bool
+	New        bool
+	Failed  *string
+	}
+
 
 func (d *Dotfile) IsExe() {
-	re := regexp.MustCompile(`\.?(conf|rc)$`) 
-	cleanPath := re.ReplaceAllString(d.Location.Name(), "") 
-	d.IsEx = isCmd(strings.TrimPrefix(cleanPath,"."))
+	re := regexp.MustCompile(`\.?(conf|rc)$`)
+	cleanPath := re.ReplaceAllString(d.Location, "")
+	d.Executable = isCmd(strings.TrimPrefix(cleanPath, "."))
 }
 
 func isCmd(cmd string) bool {
@@ -31,4 +34,15 @@ func isCmd(cmd string) bool {
 		return false
 	}
 	return true
+}
+
+func (d *Dotfile) ignore(toIgnore *[]string) {
+	d.Ignored = false
+
+	for _, pattern := range *toIgnore {
+		if match, _ := filepath.Match(pattern, d.Location); match {
+			d.Ignored = true
+			break
+		}
+	}
 }

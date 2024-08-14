@@ -6,11 +6,15 @@ import (
 )
 func HandleFileErr(action string, err error, file *os.File) error {
 	if err != nil {
-		fmt.Printf("Error %s: %v\n", action, err)
+		return fmt.Errorf("error %s: %v", action, err)
 	}
+
 	if file != nil {
-		file.Close()        
-		os.Remove(file.Name()) 
+		if removeErr := os.Remove(file.Name()); removeErr != nil {
+			return fmt.Errorf("failed to remove file %s: %v. Please remove it manually.", file.Name(), removeErr)
+		}
 	}
-	return err
+
+	return nil
 }
+

@@ -4,11 +4,5 @@ services:
       context: .
       dockerfile: Dockerfile
     image: backy:latest 
-
-  test:
-    image: backy:latest
-    volumes:
-      - ./:/app
-    working_dir: /app  
     command: go test ./...
 

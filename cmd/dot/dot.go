@@ -5,12 +5,14 @@ package dot
 
 import (
 	"fmt"
+	"net/url"
+	"os"
+	"strings"
+
 	"github.com/DnFreddie/backy/cmd/revert"
-	"github.com/DnFreddie/backy/utils"
+	"github.com/google/uuid"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
-	"os"
-	"path"
 )
 
 var BACK_CONF string
@@ -57,66 +59,39 @@ func init() {
 	DotCmd.AddCommand(revert.RevertCmd)
 }
 
-func dotCommand(local string) error {
-	var dest string
-	dest = local
-	isURL := isUrl(local)
-
-	r := &Repo{}
+func dotCommand(repoPath string) error {
+	isURL := isUrl(repoPath)
+	    id := uuid.New()
+	r := &Repo{RepoId: fmt.Sprintln(id)}
 	if isURL {
-		err := r.Clone(local)
-		if err != nil{
-			fmt.Errorf("Failed to clone repo ",r.RepoName)
+		err := r.Clone(repoPath)
+		if err != nil {
+			return fmt.Errorf("Failed to clone repo %s", r.RepoName)
 		}
-		dest = r.AbsP
-	} 
+	} else {
 
-	absDest, err := utils.MakeAbsolute(dest)
-	if err != nil {
-		return fmt.Errorf("%v doesn't exist: %w", path.Base(dest), err)
+		err := r.GetInfo(repoPath)
+		if err != nil {
+			fmt.Println(err)
+			return err
+		}
+
 	}
-
-	dotStructs, err := getPaths(absDest)
-	if err != nil {
-		return fmt.Errorf("error getting paths: %w", err)
-	}
-
-	for _, dot := range *dotStructs {
-		dot.IsExe()
-	}
-
-	if err := createSymlink(*dotStructs, absDest); err != nil {
-		return fmt.Errorf("error creating symlink: %w", err)
-	}
-
+	err := r.getDots()
+	 if err != nil {
+		 	return fmt.Errorf("error getting paths: %w", err)
+		 }
+	r.createBackup()
+	r.createRaport()
+	fmt.Println(r)
 	return nil
 }
 
-func getPaths(gitPath string) (*[]Dotfile, error) {
+func isUrl(str string) bool {
 
-	dirs, err := os.ReadDir(gitPath)
-	if err != nil {
-		fmt.Println("Can't list this dir probably permissions issue ", err)
-		return nil, err
-
+	if strings.Contains(str, "git@") {
+		return true
 	}
-	var dotfiels []Dotfile
-
-	for _, d := range dirs {
-
-		dot := Dotfile{
-			Location: d,
-			AbPath: path.Join(gitPath,d.Name()),
-
-		}
-		dotfiels = append(dotfiels, dot)
-
-	}
-
-	toIgnore := readIgnore()
-	for _, dot := range dotfiels {
-		dot.ignore(&toIgnore)
-	}
-
-	return &dotfiels, nil
+	u, err := url.Parse(str)
+	return err == nil && u.Scheme != "" && u.Host != ""
 }

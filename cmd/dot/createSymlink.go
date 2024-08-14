@@ -1,109 +1,102 @@
 package dot
 
 import (
-	"encoding/csv"
 	"fmt"
-	"github.com/DnFreddie/backy/utils"
+	"log"
 	"os"
 	"path"
 	"time"
+
+	"github.com/DnFreddie/backy/utils"
+	"gorm.io/gorm"
 )
 
-func createSymlink(dotfiles []Dotfile, source string) error {
-
-	targetPath, err := utils.GetUser(TARGET)
-	if err != nil {
-
-		return err
-	}
-
+func (r *Repo) createBackup() {
 	nowT := time.Now().Format("20060102150405")
-
-	backupDir, err := utils.Checkdir(path.Join(BACK_CONF, nowT), false)
+	backupDir := path.Join(BACK_CONF, nowT)
+	backupPath, err := utils.Checkdir(backupDir, false)
 	if err != nil {
-		fmt.Println(err)
+		log.Fatal("Failed to create backup")
 	}
 
-	f, err := os.Create(path.Join(backupDir, utils.SCHEMA_CSV))
-	defer f.Close()
-	if err != nil {
-		fmt.Println(err)
-	}
-	writer := csv.NewWriter(f)
-
-	for _, f := range dotfiles {
-
-		if f.IsEx {
-			symlinkPath := f.Location.Name()
-			sourceAbs := path.Join(source, symlinkPath)
-			dest := path.Join(targetPath, symlinkPath)
-
-			wasCreated, err := createTempBack(dest, backupDir, writer, sourceAbs, dest)
-			if err != nil {
-				fmt.Println("Error creating temporary backup:", err)
-				return err
-			}
-
-			if !wasCreated {
-
-				err = os.Symlink(sourceAbs, dest)
-
-				if err != nil {
-					fmt.Println("Failed to create symlink:", err)
-					return err
-
-				}
-				fmt.Println("Created symilnk", path.Base(dest))
-
-				data := [][]string{
-					{dest, "new"},
-				}
-
-				err = writer.WriteAll(data)
-
-				if err != nil {
-					return err
-				}
-
-			}
-		}
-	}
-
-	return nil
+	r.BackupLocation = backupPath
 
 }
 
+func (r *Repo) createRaport(){
+	if r.BackupLocation == ""{
+		log.Fatal("Can't find the backup location")
 
-func createTempBack(source string, backupDir string, csvF *csv.Writer, sourceAbs string, newDest string) (bool, error) {
+	}
+	var db *gorm.DB
+	db,err:=  utils.InitDb("repos.sql",Repo{})
+	db,err=  utils.InitDb("repos.sql",Dotfile{})
+	if err != nil {
+		log.Fatal(err)
+	}
 
-	_, err := os.Stat(source)
+
+	db.Create(&r)
+	for _,i := range *r.Dots{
+		db.Create(&i)
+
+	}
+
+
+}
+
+func (r *Repo) Link() {
+	if r.Dots == nil {
+		fmt.Println("No Files to link ")
+		return
+
+	}
+
+	target, err := utils.GetUser(TARGET)
+
+	if err != nil {
+		log.Fatal("Failed to read the config", err)
+	}
+	r.createBackup()
+	for _, dot := range *r.Dots {
+		dot.IsExe()
+		dot.createSymlink(target)
+	}
+
+}
+
+func (d *Dotfile) createSymlink(target string) {
+	if d.Executable {
+		d.isNew(target)
+		if !d.New {
+
+			err := os.Rename(d.Symlink, d.Repo.BackupLocation)
+			if err != nil {
+			strError := err.Error()
+			d.Failed =&strError
+				return
+
+			}
+
+		}
+		err := os.Symlink(d.Symlink, d.Repo.Absolute)
+
+		if err != nil {
+			strError := err.Error()
+			d.Failed =&strError
+			return
+		}
+
+	}
+
+}
+
+func (d *Dotfile) isNew(target string) {
+	d.Symlink = path.Join(target, d.Location)
+	_, err := os.Stat(d.Symlink)
 
 	if os.IsNotExist(err) {
-		return false, nil
+		d.New = true
 	}
-
-	dest := path.Join(backupDir, path.Base(source))
-	fmt.Println("Already exist", path.Base(dest))
-	err = os.Rename(source, dest)
-
-	if err != nil {
-		return false, err
-	}
-	data := [][]string{
-		{source, dest},
-	}
-	err = csvF.WriteAll(data)
-
-	if err != nil {
-		fmt.Println(err)
-		return false, nil
-	}
-
-	err = os.Symlink(sourceAbs, newDest)
-	if err != nil {
-		fmt.Println(err)
-		return false, nil
-	}
-	return true, nil
 
 }

@@ -24,25 +24,31 @@ func TestIsUrl(t *testing.T) {
 	}
 }
 
+
+
 func TestGetHeadUrl(t *testing.T) {
 	testCases := []struct {
-		name   string
-		url    string
-		err    bool
-		zipUrl string
+		name string
+		url string
+		err bool
+		archvieUrl string
+		r Repo
+		corect Repo
+
+
 	}{
-		{"wrong url", "www.xdxdasdasdasdasd", true, ""},
-		{"correct url", "https://github.com/DnFreddie/Notes", false, "https://github.com/DnFreddie/Notes/archive/refs/heads/hugo.zip"},
+		{"wrong url", "www.xdxdasdasdasdasd", true, "",Repo{} ,cRepos},
+		{"correct url", "https://github.com/DnFreddie/Notes", false, "https://github.com/DnFreddie/Notes/archive/refs/heads/hugo.zip",Repo{},cRepos},
 	}
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			zipUrl, err := getHeadUrl(tc.url)
+			 err := tc.r.getHeadUrl(tc.url)
 			if tc.err {
 				assert.Error(t, err)
 			} else {
 				assert.NoError(t, err)
-				assert.Equal(t, tc.zipUrl, zipUrl)
+				assert.Equal(t, tc.r.zipUrl, tc.archvieUrl)
 			}
 		})
 	}
@@ -52,7 +58,7 @@ func TestGetHeadUrl(t *testing.T) {
 func TestIsExe(t *testing.T) {
 	tests := []struct {
 		name     string
-		dirName  string
+		fileName  string
 		isExe bool
 	}{
 		{"Regular command", "ls", true},
@@ -61,14 +67,13 @@ func TestIsExe(t *testing.T) {
 		{"Non-command", "testR", false},
 	}
 
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			location := &customDirEntry{name: tt.dirName}
-			dot := &Dotfile{Location: location}
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			dot := &Dotfile{Location: tc.fileName}
 
 			dot.IsExe()
 
-			assert.Equal(t, tt.isExe, dot.IsEx)
+			assert.Equal(t, tc.isExe, dot.Executable)
 		})
 	}
 }

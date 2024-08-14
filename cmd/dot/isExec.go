@@ -8,17 +8,17 @@ import (
 )
 
 type Dotfile struct {
-	ID         uint     `gorm:"primaryKey;autoIncrement"`
-	Location   string
-	Executable bool
-	Symlink    string
-	AbPath     string
-	Repo       *Repo  `gorm:"-"`
-	RepoID     string  
-	Ignored    bool
-	New        bool
-	Failed  *string
-	}
+	ID         uint     `gorm:"primaryKey;autoIncrement" json:"-"`
+	Location   string   `json:"location"`
+	Executable bool     `json:"executable"`
+	Symlink    string   `json:"symlink"`
+	AbPath     string   `json:"ab_path"`
+	Repo       *Repo    `gorm:"-" json:"-"` 
+	RepoID     *string  `json:"-"`        
+	Ignored    bool     `json:"ignored"`
+	New        bool     `json:"new"`
+	Failed     *string  `json:"failed,omitempty"`         
+}
 
 
 func (d *Dotfile) IsExe() {

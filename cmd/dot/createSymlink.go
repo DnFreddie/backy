@@ -1,6 +1,7 @@
 package dot
 
 import (
+	"encoding/json"
 	"fmt"
 	"log"
 	"os"
@@ -23,26 +24,63 @@ func (r *Repo) createBackup() {
 
 }
 
-func (r *Repo) createRaport(){
-	if r.BackupLocation == ""{
+func (r *Repo) createDbRaport() {
+	if r.BackupLocation == "" {
+		log.Fatal("Can't find the backup location")
+	}
+
+	var db *gorm.DB
+	db, dbInitErr := utils.InitDb("repos.sql", Repo{})
+	if dbInitErr != nil {
+		log.Println("Failed to create the database:", dbInitErr)
+	}
+
+	db, dbInitErr = utils.InitDb("repos.sql", Dotfile{})
+	if dbInitErr != nil {
+		log.Println("Failed to create the database:", dbInitErr)
+	}
+
+	if err := db.Create(&r).Error; err != nil {
+		log.Println("Error creating repo in database:", err)
+	}
+
+	batchSize := 30
+	if err := db.CreateInBatches(*r.Dots, batchSize).Error; err != nil {
+		log.Println("Error creating dots in batches:", err)
+	}
+
+	jsonData, jsonErr := json.MarshalIndent(*r, "", "  ")
+	if jsonErr != nil {
+		log.Println("Failed to marshal data:", jsonErr)
+	}
+
+	schemaDest := path.Join(r.BackupLocation, "backy_schema.josn")
+	file, writeErr := os.Create(schemaDest)
+	if writeErr != nil {
+		log.Println("Failed to create output.json:", writeErr)
+	}
+
+	if file != nil {
+		defer file.Close()
+		if _, writeErr := file.Write(jsonData); writeErr != nil {
+			log.Println("Failed to write JSON data to file:", writeErr)
+		}
+	}
+
+	if dbInitErr != nil && jsonErr != nil {
+		panic("Both database initialization and JSON operations failed")
+	}
+
+	if writeErr != nil && dbInitErr != nil {
+		log.Println("JSON Output:", string(jsonData))
+	}
+}
+
+func (r *Repo) createCsrRaport() {
+	if r.BackupLocation == "" {
 		log.Fatal("Can't find the backup location")
 
 	}
-	var db *gorm.DB
-	db,err:=  utils.InitDb("repos.sql",Repo{})
-	db,err=  utils.InitDb("repos.sql",Dotfile{})
-	if err != nil {
-		log.Fatal(err)
-	}
-
-
-	db.Create(&r)
-	for _,i := range *r.Dots{
-		db.Create(&i)
-
-	}
-
-
 }
 
 func (r *Repo) Link() {
@@ -72,8 +110,8 @@ func (d *Dotfile) createSymlink(target string) {
 
 			err := os.Rename(d.Symlink, d.Repo.BackupLocation)
 			if err != nil {
-			strError := err.Error()
-			d.Failed =&strError
+				strError := err.Error()
+				d.Failed = &strError
 				return
 
 			}
@@ -83,7 +121,7 @@ func (d *Dotfile) createSymlink(target string) {
 
 		if err != nil {
 			strError := err.Error()
-			d.Failed =&strError
+			d.Failed = &strError
 			return
 		}
 

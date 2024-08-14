@@ -16,18 +16,18 @@ import (
 )
 
 type Repo struct {
-	ID             uint       `gorm:"primaryKey;autoIncrement"`
-	DefaultBranch string `json:"default_branch"`
-	Url           string
-	zipUrl        string
-	RepoName      string `json:"name"`
-	Absolute      string
-	GitIgnore     []string `gorm:"-"`
-	BackupLocation  string 
-	Dots *[]Dotfile `gorm:"-"`
-	RepoId  string  `gorm:"foreignKey:RepoID"`
-
-} 
+	ID              uint       `gorm:"primaryKey;autoIncrement" json:"-"`
+	DefaultBranch   string     `json:"default_branch"`
+	Url             string     `json:"repo_url"`
+	zipUrl          string     `json:"-"` 
+	RepoName        string     `json:"name"`
+	Absolute        string     `json:"-"`
+	// TODO! add this when the parser will be complete 
+	GitIgnore       []string   `gorm:"-" json:"-"`
+	BackupLocation   string     `json:"backup_location"` 
+	Dots            *[]Dotfile `gorm:"-"`
+	RepoId          string     `gorm:"foreignKey:RepoID" json:"repo_id"`
+}
 
 func (r *Repo) Clone(url string) error {
 	done := make(chan bool)
@@ -170,7 +170,6 @@ func (r *Repo) readIgnore() {
 		fmt.Println("Can't read git ignore skipping")
 		r.GitIgnore = ignored
 	}
-
 	sc := string(c)
 	lines := strings.Split(sc, "\n")
 
@@ -242,7 +241,7 @@ func (r *Repo) getDots() ( error) {
 			Location: d.Name(),
 			AbPath:   path.Join(r.Absolute, d.Name()),
 			Repo:     r,
-			RepoID: r.RepoId,
+			RepoID: &r.RepoId,
 		}
 		dotfiels = append(dotfiels, dot)
 

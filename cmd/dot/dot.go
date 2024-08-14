@@ -82,7 +82,7 @@ func dotCommand(repoPath string) error {
 		 	return fmt.Errorf("error getting paths: %w", err)
 		 }
 	r.createBackup()
-	r.createRaport()
+	r.createDbRaport()
 	fmt.Println(r)
 	return nil
 }

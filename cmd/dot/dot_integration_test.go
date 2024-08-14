@@ -5,7 +5,6 @@ import (
 	"github.com/stretchr/testify/assert"
 	"os"
 	"testing"
-	//"github.com/stretchr/testify/assert"
 )
 
 func TestDownloadRepo(t *testing.T) {
@@ -15,6 +14,7 @@ func TestDownloadRepo(t *testing.T) {
 		repPath string
 		err     bool
 	}{
+		//Don't change the order else clean up the created file if it exists
 		{"Wrong URL", "https://github.com/DnFreddie/DnFreddie/archive/refs/heads/wrong.zip", "DnFreddie", true},
 		{"Wrong Path", "https://github.com/DnFreddie/DnFreddie/archive/refs/heads/main.zip", "/test/xd/name", true},
 		{"Download correct archive", "https://github.com/DnFreddie/DnFreddie/archive/refs/heads/main.zip", "DnFreddie", false},
@@ -41,7 +41,6 @@ func TestDownloadRepo(t *testing.T) {
 				assert.NoError(t, err, "File should exist")
 			}
 
-			// Clean up the created file if it exists
 		})
 	}
 }

@@ -116,7 +116,12 @@ func (r *Repo) Link() {
 
 	}
 
+
 	target, err := utils.GetUser(TARGET)
+	if TARGET != "Desktop"{
+		panic("The config should be named Desktop")
+	}
+
 
 	if err != nil {
 		log.Fatal("Failed to read the config", err)
@@ -133,34 +138,38 @@ func (d *Dotfile) createSymlink(target string) {
 	if d.Executable {
 		d.isNew(target)
 		if !d.New {
-
-			err := os.Rename(d.Symlink, d.Repo.BackupLocation)
+			backup_dir:= path.Join(d.Repo.BackupLocation,path.Base(d.Symlink))
+			err := os.Rename(d.Symlink, backup_dir)
 			if err != nil {
 				strError := err.Error()
+				fmt.Println("Failed to rename: ", strError)
 				d.Failed = &strError
 				return
-
 			}
-
 		}
-		err := os.Symlink(d.Symlink, d.Repo.Absolute)
-
+		if d.Symlink == ""{
+			err :=fmt.Sprintf("the symlink path shouldn't be empty")
+			d.Failed = &err
+			return
+		}
+		err := os.Symlink(d.Absolute, d.Symlink) 
 		if err != nil {
 			strError := err.Error()
+			fmt.Println("Failed to create symlink: ", strError)
 			d.Failed = &strError
 			return
 		}
-
 	}
-
 }
 
 func (d *Dotfile) isNew(target string) {
 	d.Symlink = path.Join(target, d.Location)
+	fmt.Println("This is symlink ", d.Symlink)
 	_, err := os.Stat(d.Symlink)
-
 	if os.IsNotExist(err) {
 		d.New = true
+	} else {
+		d.New = false 
 	}
-
 }
+

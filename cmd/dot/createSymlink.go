@@ -105,60 +105,60 @@ func (r *Repo) PrintRaport() {
 	}
 	success := len(*r.Dots) - fCounter
 	fmt.Printf("Repo: %s\n", Blue+fmt.Sprintf("%v", r.RepoName)+Reset)
-	fmt.Printf(Green+"Succeed: %d\n" +Reset,success)
+	fmt.Printf(Green+"Succeed: %d\n"+Reset, success)
 	fmt.Printf(Red+"Failed: %s\n\n", fmt.Sprintf("%v", fCounter)+Reset)
 }
 
-func (r *Repo) Link() {
-	if r.Dots == nil {
-		fmt.Println("No Files to link ")
-		return
 
+func (r *Repo) Link(force bool) {
+	if r.Dots == nil {
+		fmt.Println("No Files to link")
+		return
 	}
 
+	// Set default target if not provided
+	if TARGET == "" {
+		TARGET = ".config"
+	}
 
 	target, err := utils.GetUser(TARGET)
-	if TARGET != "Desktop"{
-		panic("The config should be named Desktop")
-	}
-
-
 	if err != nil {
-		log.Fatal("Failed to read the config", err)
+		log.Fatal(err)
 	}
+
 	r.createBackup()
-	for _, dot := range *r.Dots {
-		dot.IsExe()
-		dot.createSymlink(target)
+
+	for _, d := range *r.Dots {
+		d.IsExe() 
+		// Create symlink if force  or if the file is executable
+		if force || (d.Executable && !force) {
+			d.createSymlink(target)
+		}
 	}
-
 }
-
 func (d *Dotfile) createSymlink(target string) {
-	if d.Executable {
-		d.isNew(target)
-		if !d.New {
-			backup_dir:= path.Join(d.Repo.BackupLocation,path.Base(d.Symlink))
-			err := os.Rename(d.Symlink, backup_dir)
-			if err != nil {
-				strError := err.Error()
-				fmt.Println("Failed to rename: ", strError)
-				d.Failed = &strError
-				return
-			}
-		}
-		if d.Symlink == ""{
-			err :=fmt.Sprintf("the symlink path shouldn't be empty")
-			d.Failed = &err
-			return
-		}
-		err := os.Symlink(d.Absolute, d.Symlink) 
+	d.isNew(target)
+	if !d.New {
+		backup_dir := path.Join(d.Repo.BackupLocation, path.Base(d.Symlink))
+		err := os.Rename(d.Symlink, backup_dir)
 		if err != nil {
 			strError := err.Error()
-			fmt.Println("Failed to create symlink: ", strError)
+			fmt.Println("Failed to rename: ", strError)
 			d.Failed = &strError
 			return
 		}
+	}
+	if d.Symlink == "" {
+		err := fmt.Sprintf("the symlink path shouldn't be empty")
+		d.Failed = &err
+		return
+	}
+	err := os.Symlink(d.Absolute, d.Symlink)
+	if err != nil {
+		strError := err.Error()
+		fmt.Println("Failed to create symlink: ", strError)
+		d.Failed = &strError
+		return
 	}
 }
 
@@ -169,7 +169,6 @@ func (d *Dotfile) isNew(target string) {
 	if os.IsNotExist(err) {
 		d.New = true
 	} else {
-		d.New = false 
+		d.New = false
 	}
 }
-

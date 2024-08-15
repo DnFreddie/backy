@@ -1,24 +1,27 @@
 FROM golang:1.22.2-alpine
 
 ENV USER=test
+ENV GO111MODULE=on
 
 RUN set -eux; \
     apk update && \
-    apk add --no-cache git && \
+    apk add --no-cache git tmux bash && \
     adduser -D -h /home/${USER} ${USER}
 
-COPY . /app
+WORKDIR /home/${USER}/backy
 
-WORKDIR /app
+COPY go.mod go.sum ./
 
 RUN go mod download
 
-RUN go mod tidy
+COPY . .
 
-RUN chown -R ${USER}:${USER} /app
+RUN mkdir -p /home/${USER}/.config/\
+    && touch /home/${USER}/.config/LICENSE
+
+RUN chown -R ${USER}:${USER} /home/${USER} 
+#&& \
+#chmod -R 777 /home/${USER}
 
 USER ${USER}
-
-# Optionally, specify a command to run your application or tests
-# CMD ["go", "run", "main.go"]  # Uncomment and modify as needed
 

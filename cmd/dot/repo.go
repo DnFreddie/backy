@@ -184,6 +184,7 @@ func (r *Repo) readIgnore() {
 
 }
 
+
 func (r *Repo) GetInfo(localPath string) error {
 	absouluteP, err := utils.MakeAbsolute(localPath)
 	if err != nil {

@@ -2,9 +2,12 @@ package dot
 
 import (
 	"fmt"
-	"github.com/stretchr/testify/assert"
 	"os"
+	"path/filepath"
 	"testing"
+
+	"github.com/DnFreddie/backy/utils"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestDownloadRepo(t *testing.T) {
@@ -23,7 +26,7 @@ func TestDownloadRepo(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			repo := Repo{
-				zipUrl:  tc.zipUrl,
+				zipUrl:   tc.zipUrl,
 				RepoName: tc.repPath,
 			}
 
@@ -44,6 +47,7 @@ func TestDownloadRepo(t *testing.T) {
 		})
 	}
 }
+
 var cRepos = Repo{
 	RepoName:      "roles",
 	DefaultBranch: "main",
@@ -76,3 +80,55 @@ func TestGitClone(t *testing.T) {
 		})
 	}
 }
+func TestLink(t *testing.T) {
+	testCases := []struct {
+		name     string
+		err      bool
+		r        Repo
+		symlinks []string
+	}{
+		{"Test Link", false, Repo{}, []string{"utils", "cmd", "LICENSE"}},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+
+			err := tc.r.GetInfo("/home/test/backy")
+			if (err != nil) != tc.err {
+				t.Errorf("GetInfo() error = %v, wantErr %v", err, tc.err)
+				return
+			}
+
+			err = tc.r.getDots()
+			if err != nil {
+				t.Errorf("getDots() error = %v", err)
+				return
+			}
+
+			tc.r.createBackup()
+			tc.r.Link(true)
+
+			for _, i := range tc.symlinks {
+				symlinkPath, err := utils.GetUser(filepath.Join(".config", i))
+				assert.NoError(t, err)
+
+
+				assertSymlink, err := os.Lstat(symlinkPath)
+				assert.NoError(t, err)
+
+				if assertSymlink == nil {
+				t.Fatal("assertSymlink is nil")
+}
+				if assertSymlink.Mode()&os.ModeSymlink != 0 {
+					originFile, err := os.Readlink(symlinkPath)
+					assert.NoError(t, err)
+
+					fmt.Println("Resolved symlink to: ", originFile)
+				} else {
+					t.Errorf("Expected symlink at %s, but it is not a symlink", symlinkPath)
+				}
+			}
+		})
+	}
+}
+

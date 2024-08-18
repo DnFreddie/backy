@@ -2,12 +2,11 @@ package dot
 
 import (
 	"fmt"
+	"github.com/DnFreddie/backy/utils"
+	"github.com/stretchr/testify/assert"
 	"os"
 	"path/filepath"
 	"testing"
-
-	"github.com/DnFreddie/backy/utils"
-	"github.com/stretchr/testify/assert"
 )
 
 func TestDownloadRepo(t *testing.T) {
@@ -81,6 +80,7 @@ func TestGitClone(t *testing.T) {
 	}
 }
 func TestLink(t *testing.T) {
+	TARGET = ".config"
 	testCases := []struct {
 		name     string
 		err      bool
@@ -93,7 +93,7 @@ func TestLink(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 
-			err := tc.r.GetInfo("/home/test/backy")
+			err := tc.r.ReadLocal("/home/test/backy")
 			if (err != nil) != tc.err {
 				t.Errorf("GetInfo() error = %v, wantErr %v", err, tc.err)
 				return
@@ -105,20 +105,19 @@ func TestLink(t *testing.T) {
 				return
 			}
 
-			tc.r.createBackup()
 			tc.r.Link(true)
 
 			for _, i := range tc.symlinks {
 				symlinkPath, err := utils.GetUser(filepath.Join(".config", i))
+				fmt.Println("This is the symlink Path")
 				assert.NoError(t, err)
-
 
 				assertSymlink, err := os.Lstat(symlinkPath)
 				assert.NoError(t, err)
 
 				if assertSymlink == nil {
-				t.Fatal("assertSymlink is nil")
-}
+					t.Fatal("assertSymlink is nil")
+				}
 				if assertSymlink.Mode()&os.ModeSymlink != 0 {
 					originFile, err := os.Readlink(symlinkPath)
 					assert.NoError(t, err)
@@ -131,4 +130,3 @@ func TestLink(t *testing.T) {
 		})
 	}
 }
-

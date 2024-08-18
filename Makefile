@@ -1,3 +1,5 @@
-deploy:
-	echo running deploy
-	docker-compose up --build
+.PHONY: test
+
+test:
+	@echo "Running tests..."
+	@docker compose up --build

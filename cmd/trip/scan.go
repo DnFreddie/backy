@@ -50,7 +50,7 @@ func tripScan(csvPath string) error {
 	}
 
 	var ConfPaths []ConfigPath
-	err = utils.ReadJson(confP, &ConfPaths)
+	err = utils.ReadJsonOld(confP, &ConfPaths)
 	if err != nil {
 		return err
 	}

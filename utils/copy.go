@@ -1,4 +1,4 @@
-package backup
+package utils
 
 import (
 	"fmt"
@@ -22,7 +22,6 @@ func Copy(src string, dest string) error {
 		return copyFile(src, dest)
 	}
 }
-
 
 func copyDir(src string, dest string) error {
 	var err error

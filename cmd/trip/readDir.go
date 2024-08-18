@@ -96,7 +96,7 @@ func CreateConfig(scanPath string) (bool, error) {
 	confP, err := utils.Checkdir("scan_paths.json", true)
 	var existed []ConfigPath
 
-	err = utils.ReadJson(confP, &existed)
+	err = utils.ReadJsonOld(confP, &existed)
 	if err != nil {
 		fmt.Println("Can't read json")
 		return true, err

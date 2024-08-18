@@ -52,7 +52,7 @@ func revertBackups(backupDir string) error {
 
 func processReversion(chosenPath string) error {
 
-	csvPath := path.Join(chosenPath, utils.SCHEMA_CSV)
+	csvPath := path.Join(chosenPath, utils.SCHEMA_JSON)
 	_, err := os.Stat(csvPath)
 
 	if os.IsNotExist(err) {

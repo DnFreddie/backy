@@ -9,7 +9,6 @@ import (
 	"os"
 	"strings"
 
-	"github.com/DnFreddie/backy/cmd/revert"
 	"github.com/google/uuid"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -56,7 +55,7 @@ var DotCmd = &cobra.Command{
 func init() {
 	DotCmd.Flags().StringVarP(&configPath, "path", "p", "", "specyfie the dotfiels target dir can be github url ")
 	DotCmd.MarkFlagRequired("path")
-	DotCmd.AddCommand(revert.RevertCmd)
+	DotCmd.AddCommand(RevertCmd)
 }
 
 func dotCommand(repoPath string) error {
@@ -70,7 +69,7 @@ func dotCommand(repoPath string) error {
 		}
 	} else {
 
-		err := r.GetInfo(repoPath)
+		err := r.ReadLocal(repoPath)
 		if err != nil {
 			fmt.Println(err)
 			return err
@@ -81,8 +80,9 @@ func dotCommand(repoPath string) error {
 	if err != nil {
 		return fmt.Errorf("error getting paths: %w", err)
 	}
-	r.createBackup()
-	r.Link(false)
+	force := true
+	r.Link(force)
+	
 	r.saveRepoSchema()
 	r.PrintRaport()
 	return nil

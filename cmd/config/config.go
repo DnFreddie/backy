@@ -27,6 +27,7 @@ func LoadConfig() {
 
 	//Default Values
 	viper.SetDefault("cron_time", "@daily")
+	//viper.SetDefault("config_path", ".config")
 	viper.SetDefault("config_path", ".config")
 	viper.SetDefault("backup_dir", "backups")
 	viper.SetDefault("config_dir", "back_conf")

@@ -85,9 +85,20 @@ func GetUser(p string) (string, error) {
 
 }
 
+func ReadJson[T any](bytes[]byte, records *[]T) error {
 
 
-func ReadJson[T any](jsonPath string, records *[]T) error {
+	err := json.Unmarshal(bytes, records)
+	if err != nil {
+		fmt.Println("Can't unmarshal the records:", err)
+		return err
+	}
+
+	return nil
+}
+
+
+func ReadJsonOld[T any](jsonPath string, records *[]T) error {
 	f, err := os.ReadFile(jsonPath)
 	if err != nil {
 		fmt.Println("Can't read the file:", err)

@@ -9,27 +9,26 @@ import (
 	"strings"
 )
 
-func UnzipSource(source, destination string) (string,error) {
+func UnzipSource(source, destination string) (string, error) {
 	reader, err := zip.OpenReader(source)
 	if err != nil {
-		return "",err
+		return "", err
 	}
 	defer reader.Close()
-
 	destination, err = filepath.Abs(destination)
 	if err != nil {
-		return "",err
+		return "", err
 	}
 
 	for _, f := range reader.File {
 		err := unzipFile(f, destination)
 		if err != nil {
-			return "",err
+			return "", err
 		}
 	}
 
 	first := reader.File[0].Name
-	return first,nil
+	return first, nil
 }
 
 func unzipFile(f *zip.File, destination string) error {

@@ -8,7 +8,6 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/DnFreddie/backy/cmd/revert"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
@@ -51,6 +50,6 @@ func init() {
 	BackupCmd.Flags().BoolVarP(&backuped, "back", "b", false, "instant backup")
 	BackupCmd.Flags().BoolVarP(&archive, "archive", "a", false, "archived the paths")
 	BackupCmd.AddCommand(DeamonCmd)
-	BackupCmd.AddCommand(revert.RevertCmd)
+
 
 }

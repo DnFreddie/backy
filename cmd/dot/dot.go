@@ -17,6 +17,7 @@ import (
 var BACK_CONF string
 var TARGET string
 var configPath string
+var force bool
 
 const (
 	IGNORE = ".gitignore"
@@ -55,6 +56,8 @@ var DotCmd = &cobra.Command{
 func init() {
 	DotCmd.Flags().StringVarP(&configPath, "path", "p", "", "specyfie the dotfiels target dir can be github url ")
 	DotCmd.MarkFlagRequired("path")
+	DotCmd.Flags().BoolVarP(&force, "force", "f", false, "force symlinks on not executables")
+
 	DotCmd.AddCommand(RevertCmd)
 }
 
@@ -80,7 +83,7 @@ func dotCommand(repoPath string) error {
 	if err != nil {
 		return fmt.Errorf("error getting paths: %w", err)
 	}
-	force := true
+	
 	r.Link(force)
 	
 	r.saveRepoSchema()

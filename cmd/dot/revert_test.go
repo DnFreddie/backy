@@ -6,15 +6,9 @@ import (
 	"testing"
 )
 
-func TestChoseBackupVersion (t *testing.T,){
-	
+func TestChoseBackupVersion(t *testing.T) {
+
 }
-
-
-
-
-
-
 
 type MockDirEntry struct {
 	name     string

@@ -12,7 +12,7 @@ func TestIsUrl(t *testing.T) {
 		name     string
 		url      string
 		expected bool
-	}{ {"wrong url", "www.xdxdasdasdasdasd", false},
+	}{{"wrong url", "www.xdxdasdasdasdasd", false},
 		{"correct url", "https://github.com/DnFreddie/Notes", true},
 		{"ssh url", "git@github.com:DnFreddie/Notes.git", true},
 	}
@@ -24,26 +24,22 @@ func TestIsUrl(t *testing.T) {
 	}
 }
 
-
-
 func TestGetHeadUrl(t *testing.T) {
 	testCases := []struct {
-		name string
-		url string
-		err bool
+		name       string
+		url        string
+		err        bool
 		archvieUrl string
-		r Repo
-		corect Repo
-
-
+		r          Repo
+		corect     Repo
 	}{
-		{"wrong url", "www.xdxdasdasdasdasd", true, "",Repo{} ,cRepos},
-		{"correct url", "https://github.com/DnFreddie/Notes", false, "https://github.com/DnFreddie/Notes/archive/refs/heads/hugo.zip",Repo{},cRepos},
+		{"wrong url", "www.xdxdasdasdasdasd", true, "", Repo{}, cRepos},
+		{"correct url", "https://github.com/DnFreddie/Notes", false, "https://github.com/DnFreddie/Notes/archive/refs/heads/hugo.zip", Repo{}, cRepos},
 	}
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			 err := tc.r.getHeadUrl(tc.url)
+			err := tc.r.getHeadUrl(tc.url)
 			if tc.err {
 				assert.Error(t, err)
 			} else {
@@ -54,12 +50,11 @@ func TestGetHeadUrl(t *testing.T) {
 	}
 }
 
-
 func TestIsExe(t *testing.T) {
 	tests := []struct {
 		name     string
-		fileName  string
-		isExe bool
+		fileName string
+		isExe    bool
 	}{
 		{"Regular command", "ls", true},
 		{"Dotfile with .conf", "ls.conf", true},
@@ -77,6 +72,7 @@ func TestIsExe(t *testing.T) {
 		})
 	}
 }
+
 type customDirEntry struct {
 	name string
 }
@@ -86,13 +82,13 @@ func (c *customDirEntry) Name() string {
 }
 
 func (c *customDirEntry) Type() os.FileMode {
-	return 0 
+	return 0
 }
 
 func (c *customDirEntry) Info() (os.FileInfo, error) {
-	return nil, nil 
+	return nil, nil
 }
 
 func (c *customDirEntry) IsDir() bool {
-	return false 
+	return false
 }

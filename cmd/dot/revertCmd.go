@@ -2,9 +2,9 @@ package dot
 
 import (
 	"fmt"
-	"log"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
+	"log"
 )
 
 var options bool
@@ -20,7 +20,7 @@ var RevertCmd = &cobra.Command{
 		case "dot":
 			backupToRevert = viper.GetViper().GetString("config_dir")
 		case "backup":
-			backupToRevert = viper.GetViper().GetString("backup_dir")	
+			backupToRevert = viper.GetViper().GetString("backup_dir")
 		default:
 			log.Fatal("This shoud't have happedn this is the wrong parent", parent)
 
@@ -36,9 +36,6 @@ var RevertCmd = &cobra.Command{
 
 			revert()
 
-
-
-
 		}
 
 	},
@@ -49,4 +46,3 @@ func init() {
 	RevertCmd.Flags().BoolVarP(&options, "delete", "d", false, "Delete the chosen config backup")
 
 }
-

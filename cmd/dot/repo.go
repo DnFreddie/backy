@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"log"
+	"log/slog"
 	"net/http"
 	"os"
 	"path"
@@ -45,22 +46,25 @@ func (r *Repo) Clone(url string) error {
 
 	utils.WaitingScreen(done, "Cloning")
 	if err := r.getHeadUrl(url); err != nil {
-		return fmt.Errorf("failed to get head URL: %w", err)
+		slog.Error("Faieled to get the url", "err", err)
+		return err
 	}
 
 	if err := r.downloadRepo(); err != nil {
-		return fmt.Errorf("failed to download repo %s: %w", r.RepoName, err)
+		slog.Error("failed to download", "repo", r.RepoName, "err", err)
+		return err
 	}
 
 	pwd, err := os.Getwd()
 	if err != nil {
-		return fmt.Errorf("failed to get current directory: %w", err)
+		log.Fatal("failed to get current directory: %w", err)
 	}
 
 	zipFile := r.RepoName + ".zip"
 	repoPath, err := utils.UnzipSource(zipFile, pwd)
 	if err != nil {
-		return fmt.Errorf("failed to unzip %s: %w", r.RepoName, err)
+		slog.Error("failed to unzip", "repo", r.RepoName, "err", err)
+		return err
 	}
 
 	defer func() {
@@ -71,7 +75,7 @@ func (r *Repo) Clone(url string) error {
 	r.Absolute, err = utils.MakeAbsolute(repoPath)
 	if err != nil {
 
-		fmt.Println("errr", err)
+		slog.Error("Can't make absoulute", "path", repoPath, "err", err)
 		return err
 
 	}
@@ -81,7 +85,8 @@ func (r *Repo) Clone(url string) error {
 func (r *Repo) ReadLocal(localPath string) error {
 	absoluteP, err := utils.MakeAbsolute(localPath)
 	if err != nil {
-		return fmt.Errorf("%v doesn't exist: %w", path.Base(localPath), err)
+		slog.Error("Doesn't exist:", "path", path.Base(localPath))
+		return err
 	}
 	r.Absolute = absoluteP
 
@@ -90,28 +95,29 @@ func (r *Repo) ReadLocal(localPath string) error {
 	reBranch := regexp.MustCompile(`refs/heads/(\w+)`)
 	reUrl := regexp.MustCompile(`url = (.+\.git)$`)
 
+	// Attempt to read the HEAD file
 	headFile, err := os.OpenFile(HEAD, os.O_RDONLY, 0)
 	if err != nil {
-		return fmt.Errorf("failed to open HEAD file: %w", err)
-	}
-	defer headFile.Close()
-
-	reader := bufio.NewReader(headFile)
-	r.DefaultBranch, err = extractMatch(reader, reBranch)
-	if err != nil {
-		return fmt.Errorf("failed to extract default branch: %w", err)
+		slog.Warn("Failed to open HEAD file:", "error", err)
+	} else {
+		defer headFile.Close()
+		reader := bufio.NewReader(headFile)
+		r.DefaultBranch, err = extractMatch(reader, reBranch)
+		if err != nil {
+			slog.Warn("Failed to extract default branch:", "error", err)
+		}
 	}
 
 	configFile, err := os.OpenFile(CONFIG, os.O_RDONLY, 0)
 	if err != nil {
-		return fmt.Errorf("failed to open config file: %w", err)
-	}
-	defer configFile.Close()
-
-	configReader := bufio.NewReader(configFile)
-	r.Url, err = extractMatch(configReader, reUrl)
-	if err != nil {
-		return fmt.Errorf("failed to extract URL: %w", err)
+		slog.Warn("Failed to open config file:", "error", err)
+	} else {
+		defer configFile.Close()
+		configReader := bufio.NewReader(configFile)
+		r.Url, err = extractMatch(configReader, reUrl)
+		if err != nil {
+			slog.Warn("Failed to extract URL:", "error", err)
+		}
 	}
 
 	return nil
@@ -119,10 +125,9 @@ func (r *Repo) ReadLocal(localPath string) error {
 
 func (r *Repo) Link(force bool) {
 	if r.Dots == nil {
-		fmt.Println("No Files to link")
+		slog.Info("No Files to link", "repo", r.RepoName)
 		return
 	}
-
 
 	target, err := utils.GetUser(TARGET)
 	if err != nil {
@@ -131,13 +136,12 @@ func (r *Repo) Link(force bool) {
 
 	r.createBackup()
 
-
 	for i := range *r.Dots {
-		d := &(*r.Dots)[i] 
+		d := &(*r.Dots)[i]
 		d.IsExe()
 		if force || d.Executable {
 			if err := d.createSymlink(target); err != nil {
-				fmt.Println(err)
+				slog.Warn("Failed to symlink", "target", target)
 			}
 		}
 	}
@@ -174,41 +178,41 @@ func (r *Repo) getHeadUrl(url string) error {
 		repoPath := matches[1]
 
 		apiURL := fmt.Sprintf("https://api.github.com/repos/%s", repoPath)
-		fmt.Println("Repository:", repoPath)
+		slog.Info("Repository:", "repoPath", repoPath)
 
 		client := &http.Client{}
 		resp, err := client.Get(apiURL)
 		if err != nil {
-			fmt.Println("Error making GET request:", err)
+			slog.Error("Error making GET request:", "error", err)
 			return err
 		}
 		defer resp.Body.Close()
 
 		if resp.StatusCode != http.StatusOK {
-			fmt.Printf("Error: received status code %d\n", resp.StatusCode)
+			slog.Error("Error: received status code", "statusCode", resp.StatusCode)
 			return fmt.Errorf("received status code %d", resp.StatusCode)
 		}
 
 		body, err := io.ReadAll(resp.Body)
 		if err != nil {
-			fmt.Printf("Error reading response body: %v\n", err)
+			slog.Error("Error reading response body:", "error", err)
 			return err
 		}
 
 		err = json.Unmarshal(body, &r)
 		if err != nil {
-			fmt.Println("Error unmarshalling JSON:", err)
+			slog.Error("Error unmarshalling JSON:", "error", err)
 			return err
 		}
 
-		fmt.Println("Default Branch:", r.DefaultBranch)
+		slog.Info("Default Branch:", "defaultBranch", r.DefaultBranch)
 
 		zipURL := fmt.Sprintf("https://github.com/%s/archive/refs/heads/%s.zip", repoPath, r.DefaultBranch)
 		r.zipUrl = zipURL
 		r.Url = url
 		return nil
 	} else {
-		fmt.Println("No match found in the URL")
+		slog.Error("No match found in the URL", "url", url)
 		return fmt.Errorf("no match found in the URL")
 	}
 }
@@ -218,35 +222,40 @@ func (r *Repo) downloadRepo() error {
 	client := &http.Client{}
 	res, err := client.Get(r.zipUrl)
 	if err != nil {
+		slog.Error("Error making GET request:", "error", err)
 		return fmt.Errorf("error making GET request: %w", err)
 	}
 	defer res.Body.Close()
 
 	if res.StatusCode != http.StatusOK {
+		slog.Error("Error: received status code", "statusCode", res.StatusCode)
 		return fmt.Errorf("error: received status code %d", res.StatusCode)
 	}
 
 	file, err := os.Create(r.RepoName + ".zip")
-
 	if err != nil {
+		slog.Error("Error creating file:", "error", err)
 		return fmt.Errorf("error creating file: %w", err)
 	}
 
 	defer func() {
 		if cerr := file.Close(); cerr != nil {
+			slog.Error("Error closing file:", "error", cerr)
 			err = fmt.Errorf("error closing file: %w", cerr)
 		}
 	}()
 
 	_, err = io.Copy(file, res.Body)
 	if err != nil {
-
+		slog.Error("Error during copying data to file:", "error", err)
 		if cleanupErr := utils.HandleFileErr("copying data to file", err, file); cleanupErr != nil {
+			slog.Error("Error during cleanup:", "error", cleanupErr)
 			return fmt.Errorf("error during cleanup: %w", cleanupErr)
 		}
 		return err
 	}
 
+	slog.Info("Repository downloaded successfully:", "repoName", r.RepoName)
 	return nil
 }
 
@@ -255,32 +264,34 @@ func (r *Repo) readIgnore() {
 
 	gitIgnore := filepath.Join(r.Absolute, IGNORE)
 	if _, err := os.Stat(gitIgnore); os.IsNotExist(err) {
-		fmt.Println("No git ignore found")
+		slog.Info("No git ignore found, using default ignored files")
 		r.GitIgnore = ignored
 		return
 	} else if err != nil {
-		fmt.Println("Error checking git ignore:", err)
+		slog.Error("Error checking git ignore:", "error", err)
 		r.GitIgnore = ignored
 		return
 	}
 
 	c, err := os.OpenFile(gitIgnore, os.O_RDONLY, 0)
-
 	if err != nil {
-		fmt.Println("Can't read git ignore, skipping:", err)
+		slog.Warn("Can't read git ignore, skipping:", "error", err)
 		r.GitIgnore = ignored
 		return
 	}
+	defer c.Close()
 
 	parsedIgnored, err := parseReadIgnore(io.Reader(c))
 	if err != nil {
-		fmt.Println("Error parsing git ignore:", err)
+		slog.Warn("Error parsing git ignore:", "error", err)
 		r.GitIgnore = ignored
 		return
 	}
 
 	r.GitIgnore = append(ignored, parsedIgnored...)
+	slog.Info("Git ignore processed successfully")
 }
+
 func parseReadIgnore(re io.Reader) ([]string, error) {
 	var ignored []string
 	scanner := bufio.NewScanner(re)
@@ -320,7 +331,7 @@ func (r *Repo) getDots() error {
 
 	dirs, err := os.ReadDir(r.Absolute)
 	if err != nil {
-		fmt.Println("Can't list this dir probably permissions issue ", err)
+		slog.Error("Can't list this dir probably permissions issue", "error", err)
 		return err
 
 	}
@@ -363,32 +374,29 @@ func (r *Repo) saveRepoSchema() {
 	if r.BackupLocation == "" {
 		log.Fatal("Can't find the backup location")
 	}
-	
-	// for _,i := range *r.Dots{
-	// 	fmt.Println("This is the symlink")
-	// 	fmt.Println(i.Symlink)
-	// }
 
-		
 	jsonData, jsonErr := json.MarshalIndent(*r, "", "  ")
 	if jsonErr != nil {
-		log.Println("Failed to marshal data:", jsonErr)
-		return 
+		slog.Error("Failed to marshal data:", "error", jsonErr)
+		return
 	}
 
 	schemaDest := path.Join(r.BackupLocation, utils.SCHEMA_JSON)
 	file, writeErr := os.Create(schemaDest)
 	if writeErr != nil {
-		log.Println("Failed to create output.json:", writeErr)
-		return 
+		slog.Error("Failed to create output.json:", "error", writeErr)
+		return
 	}
-	defer file.Close()
+	defer func() {
+		if cerr := file.Close(); cerr != nil {
+			slog.Error("Error closing file:", "error", cerr)
+		}
+	}()
 
 	if _, writeErr := file.Write(jsonData); writeErr != nil {
-		log.Println("Failed to write JSON data to file:", writeErr)
-		return 
+		slog.Error("Failed to write JSON data to file:", "error", writeErr)
+		return
 	}
 
-	log.Println("Schema saved successfully to", schemaDest)
+	slog.Info("Schema saved successfully to", "schemaDest", schemaDest)
 }
-

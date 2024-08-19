@@ -5,8 +5,9 @@ package dot
 
 import (
 	"fmt"
+	"log"
+	"log/slog"
 	"net/url"
-	"os"
 	"strings"
 
 	"github.com/google/uuid"
@@ -46,8 +47,7 @@ var DotCmd = &cobra.Command{
 		err := dotCommand(configPath)
 
 		if err != nil {
-			fmt.Println(err)
-			os.Exit(1)
+			log.Fatal(err)
 		}
 		fmt.Println("\nUre dots has been imported checkout them :)")
 	},
@@ -74,8 +74,7 @@ func dotCommand(repoPath string) error {
 
 		err := r.ReadLocal(repoPath)
 		if err != nil {
-			fmt.Println(err)
-			return err
+			return fmt.Errorf("Failed to read the local Repo %s", r.Absolute)
 		}
 
 	}
@@ -83,9 +82,10 @@ func dotCommand(repoPath string) error {
 	if err != nil {
 		return fmt.Errorf("error getting paths: %w", err)
 	}
-	
+
+	slog.Debug("Started Linking")
 	r.Link(force)
-	
+	slog.Debug("Saving schema")
 	r.saveRepoSchema()
 	r.PrintRaport()
 	return nil

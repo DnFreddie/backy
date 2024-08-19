@@ -18,3 +18,15 @@ func HandleFileErr(action string, err error, file *os.File) error {
 	return nil
 }
 
+
+
+
+type UserError struct {
+	Err error
+	FPath string 
+}
+
+func (u *UserError) Error() string {
+	return fmt.Sprintf("user error: you changed something in this file; please check :%v. original error: %v", u.Err,u.FPath)
+}
+

@@ -3,9 +3,6 @@ package dot
 import (
 	"fmt"
 	"log"
-	"os"
-	"path"
-
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
@@ -37,22 +34,7 @@ var RevertCmd = &cobra.Command{
 
 			//r := &Repo{}
 
-			dirs ,err := os.ReadDir("/home/rocky/.user_log/back_conf/")
-			bV,err:= chooseBackupVersion(dirs)
-			if err != nil  {
-				log.Fatal("Failed to chose the veriosn ",err)
-			}
-			r,err := processReversion(path.Join("/home/rocky/.user_log/back_conf/",bV))
-
-			if err != nil {
-				
-				log.Fatal(err)
-			}
-			fmt.Println(r)
-
-			for _,i := range *r.Dots{
-				fmt.Println(i)
-			}
+			revert()
 
 
 

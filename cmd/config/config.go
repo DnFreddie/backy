@@ -1,8 +1,9 @@
 package config
 
 import (
-	"github.com/spf13/viper"
 	"log"
+
+	"github.com/spf13/viper"
 )
 
 type Configuration struct {
@@ -20,7 +21,7 @@ func LoadConfig() {
 	var config Configuration
 
 	//Location
-	viper.SetConfigName(".backy")
+	viper.SetConfigName(".backy_conf")
 	viper.SetConfigType("yaml")
 	viper.AddConfigPath("$HOME/.config/")
 	viper.AddConfigPath("$HOME")
@@ -30,7 +31,7 @@ func LoadConfig() {
 	//viper.SetDefault("config_path", ".config")
 	viper.SetDefault("config_path", ".config")
 	viper.SetDefault("backup_dir", "backups")
-	viper.SetDefault("config_dir", "back_conf")
+	viper.SetDefault("config_dir", "dotfiles")
 
 	err := viper.ReadInConfig()
 	if err := viper.ReadInConfig(); err != nil {

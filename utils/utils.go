@@ -12,7 +12,7 @@ import (
 )
 
 const (
-	LOG_DIR   = ".user_log"
+	LOG_DIR   = ".backy"
 )
 
 func Checkdir(fPath string, file bool) (string, error) {
@@ -69,7 +69,7 @@ func ScanDir(dir_path string) ([]fs.DirEntry, error) {
 	return files, nil
 }
 
-// /Returns the joined path of the target and the user dir
+// Only for testing ! Returns the joined path of the target and the user dir
 func GetUser(p string) (string, error) {
 	user, err := user.Current()
 

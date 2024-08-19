@@ -129,10 +129,8 @@ func (r *Repo) Link(force bool) {
 		return
 	}
 
-	target, err := utils.GetUser(TARGET)
-	if err != nil {
-		log.Fatal(err)
-	}
+	target := path.Join(os.Getenv("HOME"),TARGET)
+
 
 	r.createBackup()
 

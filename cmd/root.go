@@ -11,6 +11,7 @@ import (
 	"github.com/DnFreddie/backy/cmd/dot"
 	"github.com/DnFreddie/backy/cmd/trip"
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 )
 
 // rootCmd represents the base command when called without any subcommands
@@ -47,7 +48,7 @@ func Execute() {
 	}
 }
 
-func addSubcommandsPallet(){
+func addSubcommandsPallet() {
 	rootCmd.AddCommand(backup.BackupCmd)
 	rootCmd.AddCommand(dot.DotCmd)
 	rootCmd.AddCommand(trip.TripCmd)
@@ -55,7 +56,9 @@ func addSubcommandsPallet(){
 
 func init() {
 	cobra.OnInitialize(config.LoadConfig)
-	
+
+	viper.SetDefault("config_dir", "back_conf")
+
 	addSubcommandsPallet()
 	rootCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 

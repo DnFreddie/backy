@@ -10,6 +10,7 @@ import (
 	"net/url"
 	"strings"
 
+	"github.com/DnFreddie/backy/common"
 	"github.com/google/uuid"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -86,8 +87,7 @@ func dotCommand(repoPath string) error {
 	slog.Debug("Started Linking")
 	r.Link(force)
 	slog.Debug("Saving schema")
-	r.saveRepoSchema()
-	r.PrintRaport()
+	common.SaveStructure(r)
 	return nil
 }
 

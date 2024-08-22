@@ -356,6 +356,7 @@ func (r *Repo) getDots() error {
 	return nil
 }
 
+
 func (r *Repo) createBackup() {
 	nowT := time.Now().Format("20060102150405")
 	backupDir := path.Join(BACK_CONF, nowT)
@@ -368,22 +369,23 @@ func (r *Repo) createBackup() {
 
 }
 
-func (r *Repo) saveRepoSchema() {
+func (r *Repo) SaveSchema() error {
 	if r.BackupLocation == "" {
-		log.Fatal("Can't find the backup location")
+
+		return fmt.Errorf("Can't find the backup location")
 	}
 
 	jsonData, jsonErr := json.MarshalIndent(*r, "", "  ")
 	if jsonErr != nil {
 		slog.Error("Failed to marshal data:", "error", jsonErr)
-		return
+		return jsonErr
 	}
 
 	schemaDest := path.Join(r.BackupLocation, utils.SCHEMA_JSON)
 	file, writeErr := os.Create(schemaDest)
 	if writeErr != nil {
 		slog.Error("Failed to create output.json:", "error", writeErr)
-		return
+		return writeErr
 	}
 	defer func() {
 		if cerr := file.Close(); cerr != nil {
@@ -393,8 +395,9 @@ func (r *Repo) saveRepoSchema() {
 
 	if _, writeErr := file.Write(jsonData); writeErr != nil {
 		slog.Error("Failed to write JSON data to file:", "error", writeErr)
-		return
+		return writeErr
 	}
 
 	slog.Info("Schema saved successfully to", "schemaDest", schemaDest)
+	return nil
 }

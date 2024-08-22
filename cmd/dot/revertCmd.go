@@ -32,9 +32,8 @@ var RevertCmd = &cobra.Command{
 
 		} else {
 
-			//r := &Repo{}
-
-			revert()
+			r := &Repo{}
+			r.Revert()
 
 		}
 

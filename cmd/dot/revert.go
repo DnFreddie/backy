@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/DnFreddie/backy/utils"
-	"io"
 	"log"
 	"log/slog"
 	"os"
@@ -16,25 +15,36 @@ import (
 	"time"
 )
 
-// Reades the back_conf and revert the schema to the previous state
-func revert() {
+// Reades the back_conf and Revert the schema to the previous state
+func (t *Repo)Revert() error {
 
-	dirs, err := os.ReadDir("/home/rocky/.user_log/back_conf/")
+	backupPath, err := utils.Checkdir(BACK_CONF, false)
+	if err != nil {
+		log.Fatal("Failed to create backup")
+	}
+
+	//TODO! Fix this read config 
+	dirs, err := os.ReadDir(path.Join(backupPath,"dotfiles"))
+	slog.Debug("This is ", "dirs",dirs)
+
 	bV, err := chooseBackupVersion(dirs)
 	if err != nil {
 		log.Fatal("Failed to chose the veriosn ", err)
 	}
-	r, err := processReversion(path.Join("/home/rocky/.user_log/back_conf/", bV))
+	r, err := processReversion(path.Join(backupPath,"dotfiles", bV))
 
 	if err != nil {
 
 		log.Fatal(err)
-	}
-	fmt.Println(r)
 
-	for _, i := range *r.Dots {
-		fmt.Printf("Moving %v to %v is new %v\n", i.Symlink, i.Absolute, i.New)
 	}
+	for _, dot := range *r.Dots {
+		
+
+
+		dot.cleanLinks()
+	}
+	return nil
 
 }
 func (d *Dotfile) cleanLinks() error {
@@ -109,31 +119,28 @@ func chooseBackupVersion(options []os.DirEntry) (string, error) {
 	}
 }
 
-// Reades the Schema and provides the formmer Repo struckt based on that
 func processReversion(chosenPath string) (Repo, error) {
 	r := &Repo{}
-	csvPath := path.Join(chosenPath, "backy_schema.josn")
-	fmt.Println(csvPath)
+	csvPath := path.Join(chosenPath, utils.SCHEMA_JSON)
 
-	_, err := os.Stat(csvPath)
-
-	if os.IsNotExist(err) {
-
+	if _, err := os.Stat(csvPath); os.IsNotExist(err) {
 		log.Fatal(&utils.UserError{Err: err, FPath: csvPath})
 	}
 
 	f, err := os.Open(csvPath)
-	defer f.Close()
 	if err != nil {
-		slog.Error("Faield to open file", "path", csvPath)
+		slog.Error("Failed to open file", "path", csvPath)
 		return Repo{}, err
-
 	}
+	defer f.Close() 
 
-	bytes, err := io.ReadAll(f)
-
-	err = json.Unmarshal(bytes, r)
-	log.Fatal(utils.UserError{FPath: csvPath, Err: err})
+	if err := json.NewDecoder(f).Decode(r); err != nil {
+		log.Fatal(&utils.UserError{FPath: csvPath, Err: err})
+		return Repo{}, err
+	}
 
 	return *r, nil
 }
+
+
+

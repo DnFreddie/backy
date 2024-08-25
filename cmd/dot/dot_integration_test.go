@@ -80,7 +80,7 @@ func TestGitClone(t *testing.T) {
 	}
 }
 func TestLink(t *testing.T) {
-	TARGET = ".config"
+	CONFIG = ".config"
 	testCases := []struct {
 		name     string
 		err      bool

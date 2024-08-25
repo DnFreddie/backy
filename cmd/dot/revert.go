@@ -4,53 +4,99 @@ import (
 	"bufio"
 	"encoding/json"
 	"fmt"
-	"github.com/DnFreddie/backy/utils"
 	"log"
 	"log/slog"
 	"os"
 	"path"
 	"path/filepath"
-	"strconv"
 	"strings"
-	"time"
+	"github.com/DnFreddie/backy/utils"
 )
 
-func (t *Repo) Revert() error {
-	backupPath, err := utils.Checkdir(BACK_CONF, false)
-	if err != nil {
-		return fmt.Errorf("failed to create backup: %w", err)
+
+func (r *Repo) Delete(path string) error {
+	var choice string
+	reader := bufio.NewReader(os.Stdin)
+
+	for {
+		fmt.Println("Are you sure you want to remove the backup? (y/n)")
+		text, _ := reader.ReadString('\n')
+		choice = strings.TrimSpace(text)
+
+		if choice != "y" && choice != "n" {
+			fmt.Println("Invalid choice. Please enter 'y' or 'n'.")
+			continue
+		}
+
+		break 
 	}
 
-	dirs, err := os.ReadDir(path.Join(backupPath, "dotfiles"))
-	if err != nil {
-		return fmt.Errorf("failed to read directories: %w", err)
-	}
-	slog.Debug("Directories read:", "dirs", dirs)
-
-	bV, err := chooseBackupVersion(dirs)
-	if err != nil {
-		return fmt.Errorf("failed to choose the version: %w", err)
-	}
-
-	r, err := processReversion(path.Join(backupPath, "dotfiles", bV))
-	if err != nil {
-		return err
-	}
-
-	for _, d := range *r.Dots {
-
-		if err := d.cleanLinks(); err != nil {
+	if choice == "y" {
+		err := os.RemoveAll(path)
+		if err != nil {
+			slog.Error("Failed to remvoe backup %w","err",err)
 			return err
 		}
-
-
-		err := os.RemoveAll(path.Join(backupPath, "dotfiles", bV))
-		if err != nil {
-			return &utils.UserError{FPath: path.Join(backupPath, "dotfiles", bV),Err: err}
-		}
-
+		fmt.Println("Backup removed successfully.")
+	} else {
+		fmt.Println("Backup removal canceled.")
 	}
+
 	return nil
+}
+// func (t *Repo) Revert() error {
+// 	backupPath, err := utils.Checkdir(DOTS, false)
+// 	if err != nil {
+// 		return fmt.Errorf("failed to create backup: %w", err)
+// 	}
+
+// 	dirs, err := os.ReadDir(backupPath)
+// 	if err != nil {
+// 		return fmt.Errorf("failed to read directories: %w", err)
+// 	}
+// 	slog.Debug("Directories read:", "dirs", dirs)
+
+// 	bV, err := utils.ChooseBackupVersion(dirs)
+
+// 	if err != nil {
+// 		return fmt.Errorf("failed to choose the version: %w", err)
+// 	}
+
+// 	chosenVersion := path.Join(DOTS, bV)
+// 	r, err := processReversion(chosenVersion)
+// 	if err != nil {
+// 		return err
+// 	}
+
+	// for _, d := range *r.Dots {
+
+	// 	if err := d.cleanLinks(); err != nil {
+	// 		return err
+	// 	}
+
+	// 	err := os.RemoveAll(path.Join(backupPath, "dotfiles", bV))
+	// 	if err != nil {
+	// 		return &utils.UserError{FPath: path.Join(backupPath, "dotfiles", bV), Err: err}
+	// 	}
+
+	// }
+	// return nil
+// }
+
+func (r *Repo) ExecuteReversion()error{
+	slog.Debug("Started Revision")
+	if len(*r.Dots) ==0 {
+		
+		return  fmt.Errorf("No files to revert")
+	}
+	for _, d := range *r.Dots {
+		if err := d.cleanLinks(); err != nil {
+			slog.Error("Failed to clean symlink","err",err)
+			d.Failed =  err.Error()
+		}
+	}
+
+return nil
 }
 
 // Reades the back_conf and Revert the schema to the previous state
@@ -87,7 +133,7 @@ func (d *Dotfile) cleanLinks() error {
 		return fmt.Errorf("failed to remove symlink %s: %w", d.Symlink, err)
 	}
 
-//If old (meaning it existed before)
+	//If old (meaning it existed before)
 	src := filepath.Join(d.Repo.BackupLocation, d.Location)
 	if err := utils.Copy(src, d.Symlink); err != nil {
 		slog.Error("Failed to copy from source to symlink:", "src", src, "symlink", d.Symlink, "error", err)
@@ -98,8 +144,7 @@ func (d *Dotfile) cleanLinks() error {
 	return nil
 }
 
-func processReversion(chosenPath string) (Repo, error) {
-	r := &Repo{}
+func(r *Repo) ProcessRevision(chosenPath string) error {
 	csvPath := path.Join(chosenPath, utils.SCHEMA_JSON)
 
 	if _, err := os.Stat(csvPath); os.IsNotExist(err) {
@@ -109,50 +154,21 @@ func processReversion(chosenPath string) (Repo, error) {
 	f, err := os.Open(csvPath)
 	if err != nil {
 		slog.Error("Failed to open file", "path", csvPath)
-		return Repo{}, err
+		return  err
 	}
 	defer f.Close()
 
 	if err := json.NewDecoder(f).Decode(r); err != nil {
 		log.Fatal(&utils.UserError{FPath: csvPath, Err: err})
-		return Repo{}, err
+		return  err
 	}
 
-	//Unmarchaling get's rid of the pointer to repo this
+	///Unmarchaling get's rid of the pointer to repo this
 	//reassign it
 	if r.Dots != nil {
 		for i := range *r.Dots {
 			(*r.Dots)[i].Repo = r
 		}
 	}
-	return *r, nil
-}
-
-func chooseBackupVersion(options []os.DirEntry) (string, error) {
-	reader := bufio.NewReader(os.Stdin)
-
-	for {
-		fmt.Println("Choose the backup version")
-
-		for i := len(options) - 1; i >= 0; i-- {
-			dir := options[i]
-			prettyName, err := time.Parse("20060102150405", dir.Name())
-
-			if err != nil {
-				log.Fatal(&utils.UserError{Err: err, FPath: dir.Name()})
-			}
-			fmt.Printf("%d: %s%s%s\n", i+1, Cyan, prettyName.Format("January 2, 2006 15:04:05"), Reset)
-		}
-
-		text, _ := reader.ReadString('\n')
-		text = strings.TrimSpace(text)
-
-		choice, err := strconv.Atoi(text)
-		if err != nil || choice < 1 || choice > len(options) {
-			fmt.Println("Invalid choice, please choose a valid option.")
-			continue
-		}
-
-		return options[len(options)-choice].Name(), nil
-	}
+	return  nil
 }

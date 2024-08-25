@@ -1,7 +1,9 @@
 package revert
 
 import (
+	"fmt"
 	"log"
+
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
@@ -32,7 +34,7 @@ var RevertCmd = &cobra.Command{
 
 			err := revertBackups(backupToRevert)
 			if err != nil {
-				log.Fatal(err)
+				log.Fatal("Revert backup errored",err)
 			}
 
 		}

@@ -2,12 +2,14 @@ package dot
 
 import (
 	"fmt"
-	"github.com/DnFreddie/backy/common"
 	"log/slog"
 	"os"
 	"path"
 	"path/filepath"
 	"testing"
+
+	"github.com/DnFreddie/backy/common"
+	"github.com/DnFreddie/backy/utils"
 )
 
 func prepTest() (string, error) {
@@ -33,27 +35,17 @@ func prepTest() (string, error) {
 }
 
 func TestRevert(t *testing.T) {
-	bLocation, err := prepTest()
+	const DOTS = "dotfiles"
+	_, err := prepTest()
 	if err != nil {
 		t.Fatalf("prepTest failed: %v", err)
 	}
 
-	baseDir := filepath.Dir(bLocation)
-	newFileName := bLocation[len(baseDir)+1:]
-
-	newPath := filepath.Join(baseDir, newFileName)
-	r, err := processReversion(newPath)
+	backupDir, err := utils.Checkdir(DOTS, false)
+	r := &Repo{}
+	common.Revert(r, backupDir)
 	if err != nil {
 		t.Fatalf("processReversion failed: %v", err)
-	}
-
-	for _, d := range *r.Dots {
-		if err := d.cleanLinks(); err != nil {
-			fmt.Println(bLocation)
-			t.Errorf("failed to clean links: %v", err)
-			continue
-		}
-
 	}
 
 	// Check if the symlinks where correclt removed
@@ -77,8 +69,4 @@ func TestRevert(t *testing.T) {
 		t.Errorf("LICENSE file does not exist in .config")
 	}
 
-	err = os.RemoveAll(bLocation)
-	if err != nil {
-		t.Errorf("failed to remove path %s: %v", bLocation, err)
-	}
 }

@@ -24,7 +24,7 @@ type Dotfile struct {
 	RepoID     *string `json:"-"`
 	Ignored    bool    `json:"ignored"`
 	New        bool    `json:"new"`
-	Failed     *string `json:"failed,omitempty"`
+	Failed     string `json:"failed,omitempty"`
 }
 
 func (d *Dotfile) createSymlink(target string) error {
@@ -33,9 +33,8 @@ func (d *Dotfile) createSymlink(target string) error {
 		backupDir := path.Join(d.Repo.BackupLocation, path.Base(d.Symlink))
 		err := utils.Copy(d.Symlink, backupDir)
 		if err != nil {
-			strError := err.Error()
-			slog.Error("Failed to rename:", "error", strError)
-			d.Failed = &strError
+			slog.Error("Failed to rename:", "error", err)
+			d.Failed = err.Error()
 			return err
 		}
 		err = os.RemoveAll(d.Symlink)
@@ -47,7 +46,8 @@ func (d *Dotfile) createSymlink(target string) error {
 
 	if d.Symlink == "" {
 		err := fmt.Sprintf("the symlink path shouldn't be empty")
-		d.Failed = &err
+		slog.Error("THIS SHOULDNT HAPPEN","err",err)
+		d.Failed = err
 		log.Fatal(err)
 		return nil
 	}

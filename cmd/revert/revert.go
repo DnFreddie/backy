@@ -29,22 +29,19 @@ func revertBackups(backupDir string) error {
 		return nil
 	}
 
-	revDir, err := chooseBackupVersion(options)
+	revDir, err := utils.ChooseBackupVersion(options)
+		log.Fatal("This code is obsolote")
 	if err != nil {
 		return err
 	}
 
-	chosenPath := path.Join(confDir, revDir.Name())
-	if err := processReversion(chosenPath); err != nil {
+	if err := processReversion(revDir); err != nil {
 		fmt.Println(err)
 		return err
 	}
 
-	err = os.RemoveAll(chosenPath)
 	if err != nil {
-		log.Fatal("Have you changed permission? This shouldn't have happened")
 	}
-	fmt.Println("succesfully removed ", chosenPath)
 
 	fmt.Println("The backup reversion was successful")
 	return nil

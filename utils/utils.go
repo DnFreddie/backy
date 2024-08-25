@@ -16,6 +16,9 @@ const (
 )
 
 func Checkdir(fPath string, file bool) (string, error) {
+	if fPath == ""{
+		return "",fmt.Errorf("Passing an empty string to the path.")
+	}
 	user, err := user.Current()
 	if err != nil {
 		return "", fmt.Errorf("can't get the user: %v", err)

@@ -18,15 +18,6 @@ import (
 	"github.com/DnFreddie/backy/utils"
 )
 
-const (
-	Reset  = "\033[0m"
-	Red    = "\033[31m"
-	Green  = "\033[32m"
-	Blue   = "\033[34m"
-	Cyan   = "\033[36m"
-	Yellow = "\033[33m"
-)
-
 type Repo struct {
 	ID            uint   `gorm:"primaryKey;autoIncrement" json:"-"`
 	DefaultBranch string `json:"default_branch"`
@@ -129,8 +120,7 @@ func (r *Repo) Link(force bool) {
 		return
 	}
 
-	target := path.Join(os.Getenv("HOME"),TARGET)
-
+	target := path.Join(os.Getenv("HOME"), CONFIG)
 
 	r.createBackup()
 
@@ -145,28 +135,30 @@ func (r *Repo) Link(force bool) {
 	}
 
 }
-func (r *Repo) PrintRaport() {
+func (r *Repo) PrintReport() {
 
 	if len(*r.Dots) == 0 {
-		fmt.Println(Cyan + "No dotfiles to raport " + Reset)
+		fmt.Println(utils.Cyan + "No dotfiles to raport " + utils.Reset)
 		return
 	}
 
-	fmt.Println(Cyan + "Generating report..." + Reset)
+	fmt.Println(utils.Cyan + "Generating report..." + utils.Reset)
 	var fCounter int
 	for _, i := range *r.Dots {
-		if i.Failed != nil {
-			fmt.Println(Red + "Error Report:" + Reset)
-			fmt.Printf("Name: %s\n", Green+i.Location+Reset)
-			fmt.Printf("Failure: %s\n\n", Red+fmt.Sprintf("%v", *i.Failed)+Reset)
+		if i.Failed != "" {
+			fmt.Println(utils.Red + "Error Report:" + utils.Reset)
+			fmt.Printf("%sName: %s %s\n", utils.Green, i.Location, utils.Reset)
+			fmt.Printf("%sFailure: %v%s\n\n", utils.Red, i.Failed, utils.Reset)
+
 			fCounter++
 		}
 
 	}
 	success := len(*r.Dots) - fCounter
-	fmt.Printf("Repo: %s\n", Blue+fmt.Sprintf("%v", r.RepoName)+Reset)
-	fmt.Printf(Green+"Succeed: %d\n"+Reset, success)
-	fmt.Printf(Red+"Failed: %s\n\n", fmt.Sprintf("%v", fCounter)+Reset)
+	fmt.Printf("%sRepo: %s%s\n", utils.Blue, r.RepoName, utils.Reset)
+	fmt.Printf("%sSucceed: %d%s\n", utils.Green, success, utils.Reset)
+	fmt.Printf("%sFailed: %v%s\n\n", utils.Red, fCounter, utils.Reset)
+
 }
 func (r *Repo) getHeadUrl(url string) error {
 	re := regexp.MustCompile(`github.com/(.*)`)
@@ -356,10 +348,9 @@ func (r *Repo) getDots() error {
 	return nil
 }
 
-
 func (r *Repo) createBackup() {
 	nowT := time.Now().Format("20060102150405")
-	backupDir := path.Join(BACK_CONF, nowT)
+	backupDir := path.Join(DOTS, nowT)
 	backupPath, err := utils.Checkdir(backupDir, false)
 	if err != nil {
 		log.Fatal("Failed to create backup")

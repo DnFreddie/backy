@@ -16,8 +16,8 @@ import (
 	"github.com/spf13/viper"
 )
 
-var BACK_CONF string
-var TARGET string
+var DOTS string
+var CONFIG string
 var configPath string
 var force bool
 
@@ -41,9 +41,9 @@ var DotCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 
 		//Where the app is looking  default .cofig
-		TARGET = viper.GetViper().GetString("config_path")
+		CONFIG = viper.GetViper().GetString("config_path")
 		// Backup dir for the configs
-		BACK_CONF = viper.GetViper().GetString("config_dir")
+		DOTS = viper.GetViper().GetString("dots")
 
 		err := dotCommand(configPath)
 
@@ -60,6 +60,7 @@ func init() {
 	DotCmd.Flags().BoolVarP(&force, "force", "f", false, "force symlinks on not executables")
 
 	DotCmd.AddCommand(RevertCmd)
+	DotCmd.AddCommand(DeleteCmd)
 }
 
 func dotCommand(repoPath string) error {

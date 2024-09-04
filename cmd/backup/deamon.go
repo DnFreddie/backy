@@ -31,7 +31,7 @@ func init() {
 }
 
 func loopEternally(croneRecord string) {
-	db, err := utils.InitDb(BACKUP_DB, Brecord{})
+	db, err := utils.InitDb(BACKUP_DB, Brecord_old{})
 	if err != nil {
 		log.Fatal("Failed to connect to the db:", err)
 	}
@@ -39,7 +39,7 @@ func loopEternally(croneRecord string) {
 	c := cron.New()
 
 	_, err = c.AddFunc(croneRecord, func() {
-		var records []Brecord
+		var records []Brecord_old
 		var paths []string
 
 		result := db.Find(&records)

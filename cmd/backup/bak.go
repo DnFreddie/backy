@@ -3,11 +3,18 @@ package backup
 import (
 	"encoding/csv"
 	"fmt"
+	"github.com/DnFreddie/backy/utils"
 	"os"
 	"path"
 	"time"
-	"github.com/DnFreddie/backy/utils"
 )
+
+
+
+
+
+
+
 
 func Back(pathsArr *[]string) error {
 	nowT := time.Now().Format("20060102150405")
@@ -19,20 +26,10 @@ func Back(pathsArr *[]string) error {
 	paths, err := addDir(pathsArr)
 
 	for _, p := range paths {
-		stat, err := os.Stat(p)
-		if err != nil {
-			fmt.Println("Error stating file:", err)
-			return err
-		}
 
 		finalDest := path.Join(dest, path.Base(p))
-		if stat.IsDir() {
-			err = copyDir(p, finalDest)
 
-		} else {
-			err = copyFile(p, finalDest)
-		}
-
+		utils.Copy(p, finalDest)
 		err = writeSchema(&paths, dest)
 		if err != nil {
 			os.RemoveAll(dirPath)
@@ -45,8 +42,7 @@ func Back(pathsArr *[]string) error {
 	return nil
 }
 
-
-	func writeSchema(bPaths *[]string, dirPath string) error {
+func writeSchema(bPaths *[]string, dirPath string) error {
 	var records [][]string
 
 	schema := path.Join(dirPath, utils.SCHEMA_CSV)
@@ -67,7 +63,6 @@ func Back(pathsArr *[]string) error {
 	if err != nil {
 		return err
 	}
-
 
 	return nil
 }

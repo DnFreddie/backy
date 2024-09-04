@@ -1,12 +1,16 @@
 package backup
 
 import (
+	"encoding/json"
 	"fmt"
+	"log"
+	"log/slog"
+	"os"
 	"path"
 
+	"github.com/DnFreddie/backy/hash"
 	"github.com/DnFreddie/backy/utils"
 	"gorm.io/gorm"
-	"gorm.io/gorm/clause"
 )
 
 
@@ -21,7 +25,8 @@ func Add_command(args *[]string) error {
 		fmt.Println("Skipping... Nothing to add ")
 		return nil
 	}
-	err = addPaths(paths)
+	fmt.Println("This are the scanned path" ,paths)
+	err = scanPaths(paths)
 	if err != nil {
 		return err
 	}
@@ -50,30 +55,48 @@ const (
 	BACKUP_DB = "backy_back.sql"
 )
 
-type Brecord struct {
+type Brecord_old struct {
 	*gorm.Model
 	TargetPath string `gorm:"unique"`
 	CurrPath   string
 }
 
-// https://gorm.io/docs/create.html#Upsert-x2F-On-Conflict
-func addPaths(FDirs []string) error {
-	db, err := utils.InitDb(BACKUP_DB, &Brecord{})
-	if err != nil {
-		return err
-	}
-
-	for _, f := range FDirs {
-		record := Brecord{
-			TargetPath: f,
-			CurrPath:   path.Base(f),
+func scanPaths(absPaths []string) error {
+	for _, i := range absPaths {
+		node, err := hash.WalkDir(i)
+		if err != nil {
+			slog.Error("Node errored", "err", err)
+			fmt.Println(err)
+			continue 
 		}
-		fmt.Println(path.Base(f), "was successfully added")
 
-		db.Clauses(clause.OnConflict{
-			Columns:   []clause.Column{{Name: "target_path"}}, 
-			DoUpdates: clause.Assignments(map[string]interface{}{"target_path": f}), 
-		}).Create(&record)
+		backDir,err := utils.Checkdir(BACKUP_DIR,false)
+
+		if err != nil{
+				log.Fatal(err)
+		}
+		fmt.Println("this is the back dir",backDir)
+
+		if err != nil{
+			return err
+		}
+		backup := path.Join(backDir,path.Base(i) + ".json" )
+		f, err := os.Create(backup)
+		if err != nil {
+			log.Fatalf("Failed to create file: %v", err)
+		}
+		
+		defer f.Close()
+
+		jsn, err := json.Marshal(node)
+		if err != nil {
+			log.Fatalf("Failed to marshal JSON: %v", err)
+		}
+
+		_, err = f.Write(jsn)
+		if err != nil {
+			log.Fatalf("Failed to write JSON to file: %v", err)
+		}
 	}
 
 	return nil

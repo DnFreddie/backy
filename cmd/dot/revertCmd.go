@@ -1,9 +1,7 @@
 package dot
 
 import (
-	"fmt"
 	"log"
-
 	"github.com/DnFreddie/backy/common"
 	"github.com/DnFreddie/backy/utils"
 	"github.com/spf13/cobra"
